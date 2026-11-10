@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Arranque en Render: convierte DATABASE_URL al JDBC de Spring.
-# En el plan free el usuario de Render no es superusuario y a menudo no puede
-# ALTER ROLE. Usamos ese usuario para la API y para Flyway. Los roles
-# neiver_app / neiver_migrator solo se crean si faltan, porque Flyway les hace GRANT.
+# En el plan free usamos la cuenta de Render para API y Flyway.
+# Los roles neiver_* solo existen para los GRANT de la migración; no se ALTER.
 set -euo pipefail
 
 url_decode() {
@@ -28,7 +27,6 @@ if [[ -n "${DATABASE_URL:-}" && -z "${NEIVER_DB_URL:-}" ]]; then
   dbname="${dbname%%\?*}"
 
   export NEIVER_DB_URL="jdbc:postgresql://${hostport}/${dbname}?sslmode=${PGSSLMODE:-require}"
-  # Misma cuenta para API y migraciones: el free de Render no permite administrar roles.
   export NEIVER_DB_USER="${render_user}"
   export NEIVER_DB_PASSWORD="${render_pass}"
   export NEIVER_DB_MIGRATOR_USER="${render_user}"
@@ -38,6 +36,12 @@ if [[ -n "${DATABASE_URL:-}" && -z "${NEIVER_DB_URL:-}" ]]; then
   export RENDER_PG_HOST="${host}"
   export RENDER_PG_PORT="${port}"
   export RENDER_PG_DB="${dbname}"
+fi
+
+if [[ -z "${NEIVER_SUPERADMIN_EMAIL:-}" || -z "${NEIVER_SUPERADMIN_PASSWORD:-}" ]]; then
+  echo "Faltan NEIVER_SUPERADMIN_EMAIL o NEIVER_SUPERADMIN_PASSWORD en Environment." >&2
+  echo "Sin esas variables el perfil prod no puede crear el administrador inicial." >&2
+  exit 1
 fi
 
 if [[ -n "${RENDER_PG_ADMIN_USER:-}" ]]; then
@@ -75,7 +79,6 @@ def role_exists(role: str) -> bool:
     result = run(f"SELECT 1 FROM pg_roles WHERE rolname = {lit(role)}")
     return "1" in result.stdout
 
-# Solo CREATE IF NOT EXISTS. Nunca ALTER: en Render free suele denegarse.
 for role in ("neiver_migrator", "neiver_app"):
     if role_exists(role):
         print(f"Rol {role} ya existe; no se altera.", file=sys.stderr)
@@ -85,15 +88,16 @@ for role in ("neiver_migrator", "neiver_app"):
         check=False,
     )
     if result.returncode != 0:
-        print(
-            f"No se pudo crear {role} ({result.stderr.strip()}). "
-            "Si Flyway falla en GRANT, hay que usar un plan con CREATEROLE.",
-            file=sys.stderr,
-        )
+        print(f"No se pudo crear {role}: {result.stderr.strip()}", file=sys.stderr)
     else:
         print(f"Rol {role} creado.", file=sys.stderr)
 
+# Un intento anterior pudo dejar public en manos de neiver_migrator.
 for sql in (
+    f"ALTER SCHEMA public OWNER TO {ident(user)}",
+    f"REASSIGN OWNED BY neiver_migrator TO {ident(user)}",
+    f"REASSIGN OWNED BY neiver_app TO {ident(user)}",
+    f"GRANT ALL ON SCHEMA public TO {ident(user)}",
     f"GRANT CONNECT ON DATABASE {ident(dbname)} TO neiver_migrator",
     f"GRANT CONNECT ON DATABASE {ident(dbname)} TO neiver_app",
     "GRANT USAGE ON SCHEMA public TO neiver_app",
@@ -103,7 +107,7 @@ for sql in (
     if result.returncode != 0:
         print(f"Aviso: {sql} -> {result.stderr.strip()}", file=sys.stderr)
 
-print("Bootstrap de roles terminado (API y Flyway usan la cuenta de Render).", file=sys.stderr)
+print("Bootstrap listo (API y Flyway usan la cuenta de Render).", file=sys.stderr)
 PY
 fi
 
