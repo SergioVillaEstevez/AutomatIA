@@ -1,6 +1,13 @@
 package com.neiverlabs.hospitality.web;
 
+import com.neiverlabs.hospitality.domain.TicketStatus;
 import com.neiverlabs.hospitality.service.HospitalityService;
+import com.neiverlabs.hospitality.service.TpvService;
+import com.neiverlabs.hospitality.service.VenueSettingsService;
+import com.neiverlabs.hospitality.service.WhatsAppTemplateService;
+import com.neiverlabs.hospitality.web.TicketRequests.AddLineRequest;
+import com.neiverlabs.hospitality.web.TicketRequests.CreateTicketRequest;
+import com.neiverlabs.hospitality.web.TicketRequests.PayTicketRequest;
 import com.neiverlabs.identity.security.RequestContext;
 import com.neiverlabs.shared.web.PageResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,9 +35,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class CompanyHospitalityController {
 
   private final HospitalityService hospitality;
+  private final VenueSettingsService venues;
+  private final WhatsAppTemplateService templates;
+  private final TpvService tpv;
 
-  public CompanyHospitalityController(HospitalityService hospitality) {
+  public CompanyHospitalityController(
+      HospitalityService hospitality,
+      VenueSettingsService venues,
+      WhatsAppTemplateService templates,
+      TpvService tpv
+  ) {
     this.hospitality = hospitality;
+    this.venues = venues;
+    this.templates = templates;
+    this.tpv = tpv;
   }
 
   @GetMapping("/resources")
@@ -89,15 +107,94 @@ public class CompanyHospitalityController {
     return hospitality.occupancy(day);
   }
 
+  @GetMapping("/floor-plan")
+  public FloorPlanResponse floorPlan(
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day
+  ) {
+    return venues.floorPlan(day);
+  }
+
+  @GetMapping("/venue")
+  @PreAuthorize("hasRole('COMPANY_ADMIN')")
+  public VenueSettingsResponse venue() {
+    return venues.get();
+  }
+
+  @PutMapping("/venue")
+  @PreAuthorize("hasRole('COMPANY_ADMIN')")
+  public VenueSettingsResponse saveVenue(@Valid @RequestBody VenueSettingsRequest request) {
+    return venues.save(request);
+  }
+
   @GetMapping("/whatsapp/status")
   public WhatsAppStatusResponse whatsAppStatus() {
     return hospitality.whatsAppStatus();
   }
 
+  @GetMapping("/whatsapp/templates")
+  public List<WhatsAppTemplateResponse> whatsAppTemplates() {
+    return templates.list();
+  }
+
+  @PostMapping("/whatsapp/templates")
+  @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize("hasRole('COMPANY_ADMIN')")
+  public WhatsAppTemplateResponse createTemplate(@Valid @RequestBody WhatsAppTemplateRequest request) {
+    return templates.create(request);
+  }
+
+  @PutMapping("/whatsapp/templates/{templateId}")
+  @PreAuthorize("hasRole('COMPANY_ADMIN')")
+  public WhatsAppTemplateResponse updateTemplate(
+      @PathVariable UUID templateId, @Valid @RequestBody WhatsAppTemplateRequest request
+  ) {
+    return templates.update(templateId, request);
+  }
+
   @PostMapping("/reservations/{reservationId}/whatsapp")
   public WhatsAppMessageResponse notify(
-      @PathVariable UUID reservationId, HttpServletRequest httpRequest
+      @PathVariable UUID reservationId,
+      @RequestBody(required = false) NotifyWhatsAppRequest body,
+      HttpServletRequest httpRequest
   ) {
-    return hospitality.notifyReservation(reservationId, RequestContext.from(httpRequest));
+    UUID templateId = body == null ? null : body.templateId();
+    return hospitality.notifyReservation(reservationId, templateId, RequestContext.from(httpRequest));
+  }
+
+  @GetMapping("/tickets")
+  public List<TicketResponse> tickets(@RequestParam(required = false) TicketStatus status) {
+    return tpv.list(status);
+  }
+
+  @GetMapping("/tickets/{ticketId}")
+  public TicketResponse ticket(@PathVariable UUID ticketId) {
+    return tpv.get(ticketId);
+  }
+
+  @PostMapping("/tickets")
+  @ResponseStatus(HttpStatus.CREATED)
+  public TicketResponse openTicket(
+      @Valid @RequestBody CreateTicketRequest request
+  ) {
+    return tpv.open(request);
+  }
+
+  @PostMapping("/tickets/{ticketId}/lines")
+  public TicketResponse addLine(
+      @PathVariable UUID ticketId, @Valid @RequestBody AddLineRequest request
+  ) {
+    return tpv.addLine(ticketId, request);
+  }
+
+  @PostMapping("/tickets/{ticketId}/payment")
+  public TicketResponse pay(
+      @PathVariable UUID ticketId, @Valid @RequestBody PayTicketRequest request
+  ) {
+    return tpv.pay(ticketId, request);
+  }
+
+  @PostMapping("/tickets/{ticketId}/cancellation")
+  public TicketResponse cancel(@PathVariable UUID ticketId) {
+    return tpv.cancel(ticketId);
   }
 }

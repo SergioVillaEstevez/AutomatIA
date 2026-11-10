@@ -179,8 +179,73 @@ export interface HospitalityResource {
   seats: number;
   active: boolean;
   sortOrder: number;
+  posX: number;
+  posY: number;
+  width: number;
+  height: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface VenueSettings {
+  companyId: string;
+  publicSlug: string;
+  publicBookingEnabled: boolean;
+  publicBookingNote?: string | null;
+  floorWidth: number;
+  floorHeight: number;
+  publicPath: string;
+  updatedAt: string;
+}
+
+export interface FloorPlan {
+  floorWidth: number;
+  floorHeight: number;
+  day: string;
+  resources: HospitalityResource[];
+  openReservations: HospitalityReservation[];
+}
+
+export interface WhatsAppTemplate {
+  id: string;
+  code: string;
+  title: string;
+  body: string;
+  metaTemplateName?: string | null;
+  active: boolean;
+  updatedAt: string;
+}
+
+export type TicketStatus = 'OPEN' | 'PAID' | 'CANCELLED';
+export type PaymentMethod = 'CASH' | 'CARD_TERMINAL' | 'OTHER';
+
+export interface TicketLine {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPriceEur: number;
+  totalEur: number;
+}
+
+export interface Ticket {
+  id: string;
+  reservationId?: string | null;
+  resourceId?: string | null;
+  label: string;
+  status: TicketStatus;
+  paymentMethod?: PaymentMethod | null;
+  notes?: string | null;
+  openedAt: string;
+  closedAt?: string | null;
+  totalEur: number;
+  lines: TicketLine[];
+}
+
+export interface PublicVenue {
+  slug: string;
+  tradeName: string;
+  note?: string | null;
+  resources: { id: string; name: string; seats: number }[];
 }
 
 export interface HospitalityReservation {

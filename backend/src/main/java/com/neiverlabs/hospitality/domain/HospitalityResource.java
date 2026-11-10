@@ -31,6 +31,18 @@ public class HospitalityResource {
   @Column(name = "sort_order", nullable = false)
   private int sortOrder;
 
+  @Column(name = "pos_x", nullable = false)
+  private int posX;
+
+  @Column(name = "pos_y", nullable = false)
+  private int posY;
+
+  @Column(nullable = false)
+  private int width;
+
+  @Column(nullable = false)
+  private int height;
+
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 
@@ -47,6 +59,10 @@ public class HospitalityResource {
     this.seats = seats;
     this.active = true;
     this.sortOrder = sortOrder;
+    this.posX = 40 + (sortOrder % 6) * 120;
+    this.posY = 40 + (sortOrder / 6) * 100;
+    this.width = 96;
+    this.height = 72;
   }
 
   @PrePersist
@@ -99,6 +115,38 @@ public class HospitalityResource {
 
   public void setSortOrder(int sortOrder) {
     this.sortOrder = sortOrder;
+  }
+
+  public int getPosX() {
+    return posX;
+  }
+
+  public void setPosX(int posX) {
+    this.posX = posX;
+  }
+
+  public int getPosY() {
+    return posY;
+  }
+
+  public void setPosY(int posY) {
+    this.posY = posY;
+  }
+
+  public int getWidth() {
+    return width;
+  }
+
+  public void setWidth(int width) {
+    this.width = width;
+  }
+
+  public int getHeight() {
+    return height;
+  }
+
+  public void setHeight(int height) {
+    this.height = height;
   }
 
   public Instant getCreatedAt() {

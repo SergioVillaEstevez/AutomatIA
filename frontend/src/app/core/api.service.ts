@@ -11,14 +11,21 @@ import {
   Company,
   CompanyDashboard,
   CompanyPayload,
+  FloorPlan,
   HospitalityOccupancy,
   HospitalityReservation,
   HospitalityResource,
   ManagedUser,
   PageResult,
+  PaymentMethod,
+  PublicVenue,
   ReservationStatus,
+  Ticket,
+  TicketStatus,
+  VenueSettings,
   WhatsAppMessageResult,
   WhatsAppStatus,
+  WhatsAppTemplate,
 } from './models';
 
 @Injectable({ providedIn: 'root' })
@@ -129,13 +136,31 @@ export class ApiService {
     return this.http.get<HospitalityResource[]>('/api/v1/company/hospitality/resources');
   }
 
-  createHospResource(body: { name: string; seats: number; sortOrder?: number; active?: boolean }): Observable<HospitalityResource> {
+  createHospResource(body: {
+    name: string;
+    seats: number;
+    sortOrder?: number;
+    active?: boolean;
+    posX?: number;
+    posY?: number;
+    width?: number;
+    height?: number;
+  }): Observable<HospitalityResource> {
     return this.http.post<HospitalityResource>('/api/v1/company/hospitality/resources', body);
   }
 
   updateHospResource(
     id: string,
-    body: { name: string; seats: number; sortOrder?: number; active?: boolean },
+    body: {
+      name: string;
+      seats: number;
+      sortOrder?: number;
+      active?: boolean;
+      posX?: number;
+      posY?: number;
+      width?: number;
+      height?: number;
+    },
   ): Observable<HospitalityResource> {
     return this.http.put<HospitalityResource>(`/api/v1/company/hospitality/resources/${id}`, body);
   }
@@ -189,7 +214,111 @@ export class ApiService {
     return this.http.get<WhatsAppStatus>('/api/v1/company/hospitality/whatsapp/status');
   }
 
-  notifyHospReservation(id: string): Observable<WhatsAppMessageResult> {
-    return this.http.post<WhatsAppMessageResult>(`/api/v1/company/hospitality/reservations/${id}/whatsapp`, {});
+  notifyHospReservation(id: string, templateId?: string | null): Observable<WhatsAppMessageResult> {
+    return this.http.post<WhatsAppMessageResult>(
+      `/api/v1/company/hospitality/reservations/${id}/whatsapp`,
+      templateId ? { templateId } : {},
+    );
+  }
+
+  hospVenue(): Observable<VenueSettings> {
+    return this.http.get<VenueSettings>('/api/v1/company/hospitality/venue');
+  }
+
+  saveHospVenue(body: {
+    publicSlug: string;
+    publicBookingEnabled: boolean;
+    publicBookingNote?: string | null;
+    floorWidth?: number;
+    floorHeight?: number;
+  }): Observable<VenueSettings> {
+    return this.http.put<VenueSettings>('/api/v1/company/hospitality/venue', body);
+  }
+
+  hospFloorPlan(day?: string | null): Observable<FloorPlan> {
+    let params = new HttpParams();
+    if (day) {
+      params = params.set('day', day);
+    }
+    return this.http.get<FloorPlan>('/api/v1/company/hospitality/floor-plan', { params });
+  }
+
+  hospWhatsAppTemplates(): Observable<WhatsAppTemplate[]> {
+    return this.http.get<WhatsAppTemplate[]>('/api/v1/company/hospitality/whatsapp/templates');
+  }
+
+  createHospWhatsAppTemplate(body: {
+    code: string;
+    title: string;
+    body: string;
+    metaTemplateName?: string | null;
+  }): Observable<WhatsAppTemplate> {
+    return this.http.post<WhatsAppTemplate>('/api/v1/company/hospitality/whatsapp/templates', body);
+  }
+
+  updateHospWhatsAppTemplate(
+    id: string,
+    body: {
+      code: string;
+      title: string;
+      body: string;
+      metaTemplateName?: string | null;
+      active?: boolean;
+    },
+  ): Observable<WhatsAppTemplate> {
+    return this.http.put<WhatsAppTemplate>(`/api/v1/company/hospitality/whatsapp/templates/${id}`, body);
+  }
+
+  hospTickets(status?: TicketStatus | null): Observable<Ticket[]> {
+    let params = new HttpParams();
+    if (status) {
+      params = params.set('status', status);
+    }
+    return this.http.get<Ticket[]>('/api/v1/company/hospitality/tickets', { params });
+  }
+
+  createHospTicket(body: {
+    reservationId?: string | null;
+    resourceId?: string | null;
+    label: string;
+    notes?: string | null;
+  }): Observable<Ticket> {
+    return this.http.post<Ticket>('/api/v1/company/hospitality/tickets', body);
+  }
+
+  addHospTicketLine(
+    ticketId: string,
+    body: { description: string; quantity: number; unitPriceEur: number },
+  ): Observable<Ticket> {
+    return this.http.post<Ticket>(`/api/v1/company/hospitality/tickets/${ticketId}/lines`, body);
+  }
+
+  payHospTicket(ticketId: string, paymentMethod: PaymentMethod): Observable<Ticket> {
+    return this.http.post<Ticket>(`/api/v1/company/hospitality/tickets/${ticketId}/payment`, { paymentMethod });
+  }
+
+  cancelHospTicket(ticketId: string): Observable<Ticket> {
+    return this.http.post<Ticket>(`/api/v1/company/hospitality/tickets/${ticketId}/cancellation`, {});
+  }
+
+  publicVenue(slug: string): Observable<PublicVenue> {
+    return this.http.get<PublicVenue>(`/api/v1/public/hospitality/${slug}`);
+  }
+
+  publicBook(
+    slug: string,
+    body: {
+      resourceId?: string | null;
+      guestName: string;
+      guestPhone?: string | null;
+      partySize: number;
+      startsAt: string;
+      notes?: string | null;
+    },
+  ): Observable<{ id: string; status: string; detail: string; startsAt: string }> {
+    return this.http.post<{ id: string; status: string; detail: string; startsAt: string }>(
+      `/api/v1/public/hospitality/${slug}/reservations`,
+      body,
+    );
   }
 }

@@ -16,10 +16,16 @@ import { AiUsagePage } from './pages/ai/usage-page';
 import { AiPricingPage } from './pages/ai/pricing-page';
 import { HospReservationsPage } from './pages/hospitality/reservations-page';
 import { HospResourcesPage } from './pages/hospitality/resources-page';
+import { HospFloorPage } from './pages/hospitality/floor-page';
+import { HospTpvPage } from './pages/hospitality/tpv-page';
+import { HospVenuePage } from './pages/hospitality/venue-page';
+import { HospTemplatesPage } from './pages/hospitality/templates-page';
+import { PublicBookingPage } from './pages/hospitality/public-booking-page';
 
 export const routes: Routes = [
   { path: 'login', component: LoginPage, canActivate: [guestGuard] },
   { path: 'cambiar-clave', component: ChangePasswordPage, canActivate: [authGuard] },
+  { path: 'reservar/:slug', component: PublicBookingPage },
   {
     path: '',
     component: Shell,
@@ -49,6 +55,10 @@ export const routes: Routes = [
           { path: 'datos', component: CompanyProfilePage },
           { path: 'reservas', component: HospReservationsPage },
           { path: 'mesas', component: HospResourcesPage, canActivate: [roleGuard('COMPANY_ADMIN')] },
+          { path: 'plano', component: HospFloorPage },
+          { path: 'tpv', component: HospTpvPage },
+          { path: 'local', component: HospVenuePage, canActivate: [roleGuard('COMPANY_ADMIN')] },
+          { path: 'plantillas-whatsapp', component: HospTemplatesPage, canActivate: [roleGuard('COMPANY_ADMIN')] },
           { path: 'ia', component: AiUsagePage, data: { scope: 'company' } },
           { path: 'actividad', component: AuditPage, data: { scope: 'company' } },
         ],

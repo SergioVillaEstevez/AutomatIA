@@ -61,6 +61,10 @@ export class HospResourcesPage {
       seats: resource.seats,
       sortOrder: resource.sortOrder,
       active: !resource.active,
+      posX: resource.posX,
+      posY: resource.posY,
+      width: resource.width,
+      height: resource.height,
     }).subscribe({
       next: () => this.reload(),
       error: (error: unknown) => this.error.set(problemMessage(error)),

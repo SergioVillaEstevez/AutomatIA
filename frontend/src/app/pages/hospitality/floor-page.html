@@ -1,0 +1,53 @@
+<div class="page-head">
+  <div>
+    <h1>Plano de sala</h1>
+    <p>Arrastra las mesas. En rojo, las que tienen reserva abierta este día.</p>
+  </div>
+  <mat-form-field appearance="outline">
+    <mat-label>Día</mat-label>
+    <input matInput type="date" [value]="day()" (change)="changeDay($any($event.target).value)">
+  </mat-form-field>
+</div>
+@if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+@if (plan(); as floor) {
+  <div class="floor" [style.width.px]="floor.floorWidth" [style.height.px]="floor.floorHeight">
+    @for (table of floor.resources; track table.id) {
+      @if (table.active) {
+        <div
+          class="table"
+          [class.busy]="busy(table.id)"
+          [style.left.px]="table.posX"
+          [style.top.px]="table.posY"
+          [style.width.px]="table.width"
+          [style.height.px]="table.height"
+          (pointerdown)="onPointerDown($event, table)"
+          (pointermove)="onPointerMove($event, table)"
+          (pointerup)="onPointerUp(table)"
+        >
+          {{ table.name }}
+          <small>{{ table.seats }} plazas</small>
+        </div>
+      }
+    }
+  </div>
+  <section class="card">
+    <h2>Reservas abiertas del plano</h2>
+    @if (floor.openReservations.length === 0) {
+      <p class="empty">Ninguna mesa ocupada en este día.</p>
+    } @else {
+      <table class="data">
+        <thead><tr><th>Hora</th><th>Cliente</th><th>Mesa</th><th>Estado</th></tr></thead>
+        <tbody>
+          @for (item of floor.openReservations; track item.id) {
+            <tr>
+              <td>{{ formatWhen(item.startsAt) }}</td>
+              <td>{{ item.guestName }} · {{ item.partySize }}</td>
+              <td>{{ item.resourceName || '—' }}</td>
+              <td>{{ hospStatusLabel(item.status) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+}

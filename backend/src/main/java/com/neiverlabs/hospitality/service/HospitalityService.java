@@ -9,6 +9,7 @@ import com.neiverlabs.hospitality.domain.ReservationStatus;
 import com.neiverlabs.hospitality.repo.HospitalityReservationRepository;
 import com.neiverlabs.hospitality.repo.HospitalityResourceRepository;
 import com.neiverlabs.hospitality.repo.HospitalityWhatsAppMessageRepository;
+import com.neiverlabs.hospitality.repo.HospitalityWhatsAppTemplateRepository;
 import com.neiverlabs.hospitality.web.CreateReservationRequest;
 import com.neiverlabs.hospitality.web.OccupancyResponse;
 import com.neiverlabs.hospitality.web.ReservationResponse;
@@ -55,6 +56,7 @@ public class HospitalityService {
   private final HospitalityResourceRepository resources;
   private final HospitalityReservationRepository reservations;
   private final HospitalityWhatsAppMessageRepository messages;
+  private final HospitalityWhatsAppTemplateRepository templateBodies;
   private final WhatsAppCloudClient whatsApp;
   private final AuditService audit;
   private final Clock clock;
@@ -63,6 +65,7 @@ public class HospitalityService {
       HospitalityResourceRepository resources,
       HospitalityReservationRepository reservations,
       HospitalityWhatsAppMessageRepository messages,
+      HospitalityWhatsAppTemplateRepository templateBodies,
       WhatsAppCloudClient whatsApp,
       AuditService audit,
       Clock clock
@@ -70,6 +73,7 @@ public class HospitalityService {
     this.resources = resources;
     this.reservations = reservations;
     this.messages = messages;
+    this.templateBodies = templateBodies;
     this.whatsApp = whatsApp;
     this.audit = audit;
     this.clock = clock;
@@ -93,6 +97,7 @@ public class HospitalityService {
     }
     HospitalityResource resource = new HospitalityResource(
         companyId, name, request.seats(), request.sortOrder() == null ? 0 : request.sortOrder());
+    applyLayout(resource, request);
     resources.save(resource);
     audit.record(AuditActions.HOSP_RESOURCE_CREATED, "HospitalityResource", resource.getId(),
         actor.userId(), companyId, Map.of("name", name, "seats", request.seats()), context);
@@ -116,6 +121,7 @@ public class HospitalityService {
     if (request.active() != null) {
       resource.setActive(request.active());
     }
+    applyLayout(resource, request);
     resources.save(resource);
     audit.record(AuditActions.HOSP_RESOURCE_UPDATED, "HospitalityResource", resource.getId(),
         actor.userId(), companyId, Map.of("name", resource.getName(), "active", resource.isActive()), context);
@@ -233,6 +239,13 @@ public class HospitalityService {
 
   @Transactional
   public WhatsAppMessageResponse notifyReservation(UUID reservationId, RequestContext context) {
+    return notifyReservation(reservationId, null, context);
+  }
+
+  @Transactional
+  public WhatsAppMessageResponse notifyReservation(
+      UUID reservationId, UUID templateId, RequestContext context
+  ) {
     NeiverPrincipal actor = AccessGuard.current();
     UUID companyId = AccessGuard.requireTenant();
     HospitalityReservation reservation = reservations.findByIdAndCompanyId(reservationId, companyId)
@@ -241,7 +254,9 @@ public class HospitalityService {
       throw ApiException.badRequest("La reserva no tiene teléfono para WhatsApp.");
     }
     String phone = normalizePhone(reservation.getGuestPhone());
-    String body = buildConfirmationBody(reservation);
+    String body = templateId == null
+        ? buildConfirmationBody(reservation)
+        : renderTemplateBody(companyId, templateId, reservation);
     if (!whatsApp.available()) {
       throw new ApiException(
           HttpStatus.SERVICE_UNAVAILABLE,
@@ -309,6 +324,30 @@ public class HospitalityService {
       name = resources.findById(reservation.getResourceId()).map(HospitalityResource::getName).orElse(null);
     }
     return ReservationResponse.from(reservation, name);
+  }
+
+  private void applyLayout(HospitalityResource resource, ResourceRequest request) {
+    if (request.posX() != null) {
+      resource.setPosX(request.posX());
+    }
+    if (request.posY() != null) {
+      resource.setPosY(request.posY());
+    }
+    if (request.width() != null) {
+      resource.setWidth(request.width());
+    }
+    if (request.height() != null) {
+      resource.setHeight(request.height());
+    }
+  }
+
+  private String renderTemplateBody(UUID companyId, UUID templateId, HospitalityReservation reservation) {
+    var template = templateBodies.findByIdAndCompanyId(templateId, companyId)
+        .orElseThrow(() -> ApiException.notFound("Plantilla WhatsApp no encontrada."));
+    if (!template.isActive()) {
+      throw ApiException.badRequest("Esa plantilla está desactivada.");
+    }
+    return TemplateRenderer.render(template.getBody(), reservation, BUSINESS_ZONE, resources);
   }
 
   private String buildConfirmationBody(HospitalityReservation reservation) {
