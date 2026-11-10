@@ -1,0 +1,81 @@
+spring:
+  application:
+    name: neiver-labs
+  datasource:
+    url: ${NEIVER_DB_URL:jdbc:postgresql://localhost:5432/neiver}
+    username: ${NEIVER_DB_USER:neiver_app}
+    password: ${NEIVER_DB_PASSWORD:}
+    hikari:
+      pool-name: neiver-app
+      maximum-pool-size: 10
+  flyway:
+    user: ${NEIVER_DB_MIGRATOR_USER:neiver_migrator}
+    password: ${NEIVER_DB_MIGRATOR_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  jackson:
+    time-zone: UTC
+  data:
+    web:
+      pageable:
+        default-page-size: 20
+        max-page-size: 100
+        one-indexed-parameters: true
+
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-binding-errors: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+      roles: SUPER_ADMIN
+      probes:
+        enabled: true
+
+info:
+  app:
+    name: Neiver Labs
+    phase: 1
+
+neiver:
+  security:
+    jwt-secret: ${NEIVER_JWT_SECRET:}
+    access-token-minutes: 15
+    refresh-token-days: 14
+    cookie-secure: ${NEIVER_COOKIE_SECURE:false}
+    bcrypt-strength: 12
+    super-admin-email: ${NEIVER_SUPERADMIN_EMAIL:}
+    super-admin-password: ${NEIVER_SUPERADMIN_PASSWORD:}
+    super-admin-name: ${NEIVER_SUPERADMIN_NAME:Administrador Neiver}
+    login-attempts-per-minute: 10
+    max-failed-logins: 5
+    lock-minutes: 15
+  cors:
+    allowed-origins: ${NEIVER_CORS_ALLOWED_ORIGINS:http://localhost:4200}
+  api-docs:
+    enabled: false
+
+springdoc:
+  api-docs:
+    enabled: ${neiver.api-docs.enabled:false}
+  swagger-ui:
+    enabled: ${neiver.api-docs.enabled:false}
+
+logging:
+  level:
+    root: info
+    org.hibernate.SQL: warn

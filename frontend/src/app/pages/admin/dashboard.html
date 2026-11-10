@@ -1,0 +1,20 @@
+<div class="page-head">
+  <div>
+    <h1>Resumen</h1>
+    <p>Empresas y cuentas que hay ahora mismo en la plataforma.</p>
+  </div>
+</div>
+@if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+<section class="notice">
+  <strong>Lo que esta versión mide</strong>
+  <p>Empresas, usuarios y actividad de acceso. El consumo de IA, los documentos y las automatizaciones de n8n todavía no están conectados, así que no se muestran como si ya tuvieran cifras.</p>
+</section>
+@if (data(); as dashboard) {
+  <section class="metrics">
+    <article class="card metric"><span>Empresas</span><strong>{{ dashboard.companies }}</strong></article>
+    <article class="card metric"><span>Empresas activas</span><strong>{{ dashboard.activeCompanies }}</strong></article>
+    <article class="card metric"><span>Empresas suspendidas</span><strong>{{ dashboard.suspendedCompanies }}</strong></article>
+    <article class="card metric"><span>Usuarios activos</span><strong>{{ dashboard.activeUsers }}</strong></article>
+  </section>
+  <app-activity-list [entries]="dashboard.recentActivity" />
+}

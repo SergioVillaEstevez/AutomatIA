@@ -1,0 +1,43 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav #drawer [mode]="mobile() ? 'over' : 'side'" [opened]="!mobile()" class="side">
+    <div class="brand">
+      <span class="mark">N</span>
+      <strong>Neiver Labs</strong>
+    </div>
+    <nav class="nav">
+      @if (user()?.role === 'SUPER_ADMIN') {
+        <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Resumen</a>
+        <a routerLink="/admin/empresas" routerLinkActive="active">Empresas</a>
+        <a routerLink="/admin/actividad" routerLinkActive="active">Actividad</a>
+      } @else {
+        <a routerLink="/empresa" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Resumen</a>
+        @if (user()?.role === 'COMPANY_ADMIN') {
+          <a routerLink="/empresa/usuarios" routerLinkActive="active">Usuarios</a>
+        }
+        <a routerLink="/empresa/datos" routerLinkActive="active">Datos de la empresa</a>
+        <a routerLink="/empresa/actividad" routerLinkActive="active">Actividad</a>
+      }
+    </nav>
+    <p class="side-foot">Fase 1</p>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <header class="topbar">
+      <div>
+        @if (mobile()) {
+          <button mat-button type="button" (click)="drawer.toggle()">Menú</button>
+        }
+      </div>
+      <div class="who">
+        <strong>{{ user()?.firstName }} {{ user()?.lastName }}</strong>
+        <small>
+          {{ roleLabel[user()?.role || 'COMPANY_USER'] }}
+          @if (user()?.companyName) { · {{ user()?.companyName }} }
+        </small>
+      </div>
+      <button mat-stroked-button type="button" (click)="logout()">Cerrar sesión</button>
+    </header>
+    <main id="contenido" class="content">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

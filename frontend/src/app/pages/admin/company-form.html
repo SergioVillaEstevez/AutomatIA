@@ -1,0 +1,27 @@
+<div class="page-head">
+  <div>
+    <h1>{{ companyId ? 'Editar empresa' : 'Nueva empresa' }}</h1>
+    <p>La identidad fiscal solo la cambia el administrador general.</p>
+  </div>
+  <a mat-button routerLink="/admin/empresas">Volver</a>
+</div>
+@if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+<form class="card" novalidate (ngSubmit)="submit()">
+  <p class="help">El límite mensual de IA se guarda con la empresa. En esta versión no bloquea ninguna operación porque todavía no hay consumo que medir.</p>
+  <div class="form-grid">
+    <mat-form-field appearance="outline"><mat-label>Razón social</mat-label><input matInput [formControl]="legalName"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Nombre comercial</mat-label><input matInput [formControl]="tradeName"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>CIF, NIF o NIE</mat-label><input matInput [formControl]="taxId"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Correo</mat-label><input matInput type="email" [formControl]="email"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Teléfono</mat-label><input matInput [formControl]="phone"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Plan</mat-label><input matInput [formControl]="planLabel"></mat-form-field>
+    <mat-form-field appearance="outline" class="span-2"><mat-label>Dirección</mat-label><input matInput [formControl]="addressLine"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Municipio</mat-label><input matInput [formControl]="city"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Provincia</mat-label><input matInput [formControl]="province"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Código postal</mat-label><input matInput [formControl]="postalCode"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Límite mensual de IA (€)</mat-label><input matInput inputmode="decimal" [formControl]="budget"></mat-form-field>
+  </div>
+  <div class="actions">
+    <button mat-flat-button type="submit" [disabled]="submitting()">Guardar</button>
+  </div>
+</form>

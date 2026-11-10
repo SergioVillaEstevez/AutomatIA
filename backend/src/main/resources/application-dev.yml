@@ -1,0 +1,20 @@
+# Perfil exclusivo de una máquina de desarrollo. No arrancar un servidor con este perfil.
+neiver:
+  security:
+    jwt-secret: dev-only-neiver-labs-jwt-secret-32
+    cookie-secure: false
+    super-admin-email: admin@neiver.local
+    super-admin-password: Neiver-Dev-Admin-12
+    super-admin-name: Administrador local
+  api-docs:
+    enabled: true
+
+spring:
+  datasource:
+    password: neiver_app_dev
+  flyway:
+    password: neiver_migrator_dev
+
+logging:
+  level:
+    com.neiverlabs: info

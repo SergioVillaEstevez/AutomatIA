@@ -1,0 +1,17 @@
+neiver:
+  security:
+    cookie-secure: true
+  api-docs:
+    enabled: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+server:
+  shutdown: graceful
+  error:
+    include-stacktrace: never
+    include-message: never

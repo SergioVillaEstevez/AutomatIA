@@ -1,0 +1,31 @@
+<section class="card">
+  <div class="page-head">
+    <div>
+      <h2>Usuarios</h2>
+      <p class="help">Solo ven la información de su empresa. Un administrador de empresa no puede crear administradores generales.</p>
+    </div>
+    <button mat-flat-button type="button" (click)="create()">Nuevo usuario</button>
+  </div>
+  @if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+  @if (users().length === 0) {
+    <p class="empty">Esta empresa todavía no tiene usuarios.</p>
+  } @else {
+    <table class="data">
+      <thead><tr><th>Persona</th><th>Rol</th><th>Estado</th><th>Último acceso</th><th></th></tr></thead>
+      <tbody>
+        @for (user of users(); track user.id) {
+          <tr>
+            <td><strong>{{ user.firstName }} {{ user.lastName }}</strong><div class="muted">{{ user.email }}</div></td>
+            <td>{{ roleLabel[user.role] }}</td>
+            <td><span class="pill" [class.ok]="user.status === 'ACTIVE'" [class.bad]="user.status === 'DISABLED'">{{ user.status === 'ACTIVE' ? 'Activo' : 'Desactivado' }}</span></td>
+            <td>{{ formatWhen(user.lastLoginAt) }}</td>
+            <td class="row-actions">
+              <button mat-button type="button" (click)="reset(user)">Clave temporal</button>
+              <button mat-button type="button" (click)="toggle(user)">{{ user.status === 'ACTIVE' ? 'Desactivar' : 'Activar' }}</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
