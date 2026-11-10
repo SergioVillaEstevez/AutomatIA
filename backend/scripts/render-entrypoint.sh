@@ -14,6 +14,15 @@ if [[ -n "${DATABASE_URL:-}" && -z "${NEIVER_DB_URL:-}" ]]; then
   render_user="$(url_decode "${userinfo%%:*}")"
   render_pass="$(url_decode "${userinfo#*:}")"
   hostport="${hostpart%%/*}"
+  # Render a veces entrega host sin puerto (p. ej. dpg-xxxx-a).
+  if [[ "${hostport}" == *:* ]]; then
+    host="${hostport%:*}"
+    port="${hostport##*:}"
+  else
+    host="${hostport}"
+    port="5432"
+    hostport="${host}:5432"
+  fi
   dbname="${hostpart#*/}"
   dbname="${dbname%%\?*}"
   export NEIVER_DB_URL="jdbc:postgresql://${hostport}/${dbname}?sslmode=${PGSSLMODE:-require}"
@@ -23,15 +32,14 @@ if [[ -n "${DATABASE_URL:-}" && -z "${NEIVER_DB_URL:-}" ]]; then
   export NEIVER_DB_MIGRATOR_PASSWORD="${NEIVER_DB_MIGRATOR_PASSWORD:-}"
   export RENDER_PG_ADMIN_USER="${render_user}"
   export RENDER_PG_ADMIN_PASSWORD="${render_pass}"
-  export RENDER_PG_HOSTPORT="${hostport}"
+  export RENDER_PG_HOST="${host}"
+  export RENDER_PG_PORT="${port}"
   export RENDER_PG_DB="${dbname}"
 fi
 
 if [[ -n "${RENDER_PG_ADMIN_USER:-}" && -n "${NEIVER_DB_PASSWORD:-}" && -n "${NEIVER_DB_MIGRATOR_PASSWORD:-}" ]]; then
   export PGPASSWORD="${RENDER_PG_ADMIN_PASSWORD}"
-  host="${RENDER_PG_HOSTPORT%:*}"
-  port="${RENDER_PG_HOSTPORT##*:}"
-  admin_uri="host=${host} port=${port} dbname=${RENDER_PG_DB} user=${RENDER_PG_ADMIN_USER} sslmode=${PGSSLMODE:-require}"
+  admin_uri="host=${RENDER_PG_HOST} port=${RENDER_PG_PORT} dbname=${RENDER_PG_DB} user=${RENDER_PG_ADMIN_USER} sslmode=${PGSSLMODE:-require}"
 
   ensure_role() {
     local role="$1"
