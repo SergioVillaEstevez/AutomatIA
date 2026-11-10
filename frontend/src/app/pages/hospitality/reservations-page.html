@@ -23,6 +23,17 @@
 <section class="notice">
   <strong>WhatsApp</strong>
   <p>{{ whatsappDetail() || 'Comprobando configuración…' }}</p>
+  @if (templates().length > 0) {
+    <mat-form-field appearance="outline" style="width:min(360px,100%);margin-top:8px;">
+      <mat-label>Plantilla al avisar</mat-label>
+      <mat-select [formControl]="templateId">
+        <mat-option value="">Texto por defecto</mat-option>
+        @for (template of templates(); track template.id) {
+          <mat-option [value]="template.id">{{ template.title }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
 </section>
 
 <section class="card" style="padding: 20px; margin-bottom: 16px;">

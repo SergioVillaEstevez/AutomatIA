@@ -1,0 +1,35 @@
+<section class="auth-screen">
+  <div class="auth-card" style="width:min(520px,100%);">
+    @if (venue(); as local) {
+      <div class="brand"><span class="mark">N</span><strong>{{ local.tradeName }}</strong></div>
+      <p class="lede">{{ local.note || 'Solicita tu mesa. Quedará pendiente de confirmación del local.' }}</p>
+      @if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+      @if (done()) {
+        <section class="notice"><strong>Solicitud enviada</strong><p>{{ done() }}</p></section>
+      } @else {
+        <form class="stack" novalidate (ngSubmit)="submit()">
+          <mat-form-field appearance="outline"><mat-label>Nombre</mat-label><input matInput [formControl]="guestName"></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Teléfono</mat-label><input matInput [formControl]="guestPhone"></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Comensales</mat-label><input matInput [formControl]="partySize"></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Día</mat-label><input matInput type="date" [formControl]="day"></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Hora</mat-label><input matInput type="time" [formControl]="time"></mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Mesa (opcional)</mat-label>
+            <mat-select [formControl]="resourceId">
+              <mat-option value="">Sin preferencia</mat-option>
+              @for (resource of local.resources; track resource.id) {
+                <mat-option [value]="resource.id">{{ resource.name }} ({{ resource.seats }})</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Notas</mat-label><input matInput [formControl]="notes"></mat-form-field>
+          <div class="actions"><button mat-flat-button type="submit">Pedir reserva</button></div>
+        </form>
+      }
+    } @else if (error()) {
+      <p class="alert" role="alert">{{ error() }}</p>
+    } @else {
+      <p class="lede">Cargando local…</p>
+    }
+  </div>
+</section>

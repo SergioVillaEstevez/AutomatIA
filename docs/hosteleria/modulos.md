@@ -26,12 +26,27 @@ Vertical para bares y restaurantes sobre el núcleo multiempresa. Resuelve **res
 
 **Cómo funciona.** `GET .../whatsapp/status` dice si el servidor tiene `WHATSAPP_ACCESS_TOKEN` y `WHATSAPP_PHONE_NUMBER_ID`. `POST .../reservations/{id}/whatsapp` envía un texto por WhatsApp Cloud API y guarda el resultado. Sin credenciales responde `503 WHATSAPP_NOT_CONFIGURED`. Meta puede exigir plantillas aprobadas para el primer contacto: si la API rechaza el envío, se guarda `FAILED` y se responde `502`.
 
-## Qué no cubre esta entrega
+## Widget público
 
-- Motor de reservas online para el comensal final (web pública / widget).
-- Planos de sala, turnos de cocina, TPV, stock o menú.
-- Plantillas WhatsApp gestionadas desde la UI.
-- n8n.
+**Problema.** El comensal pide mesa sin cuenta.
+
+**Cómo funciona.** El administrador activa un slug en `PUT /api/v1/company/hospitality/venue`. La ruta pública `GET/POST /api/v1/public/hospitality/{slug}` (y la página `/reservar/{slug}`) crea reservas `PENDING`. Límite por IP. Sin autenticación.
+
+## Plano de sala
+
+Mesas con `posX/posY/width/height`. `GET .../floor-plan` y UI de arrastre. Las mesas con reserva abierta del día se marcan ocupadas.
+
+## TPV de caja
+
+Tickets `OPEN/PAID/CANCELLED` con líneas y cobro en efectivo o datáfono. **No hay pasarela**: `PAID` significa cobrado en el local.
+
+## Plantillas WhatsApp
+
+CRUD de textos con variables `{{guestName}}`, `{{startsAt}}`, etc. Campo opcional `metaTemplateName`. El envío desde reservas puede elegir plantilla. Sin credenciales Meta → `503`.
+
+## Qué no cubre aún
+
+- Pasarela de tarjeta online, menú digital, turnos de cocina, n8n.
 
 ## Prueba
 

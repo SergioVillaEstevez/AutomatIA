@@ -27,6 +27,7 @@ export const ACTION_LABEL: Record<string, string> = {
   HOSP_RESERVATION_CREATED: 'Alta de reserva',
   HOSP_RESERVATION_UPDATED: 'Cambio de reserva',
   HOSP_WHATSAPP_SENT: 'Aviso WhatsApp de reserva',
+  HOSP_TICKET_PAID: 'Ticket cobrado en caja',
 };
 
 export function actionLabel(action: string): string {

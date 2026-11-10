@@ -11,6 +11,7 @@ import {
   HospitalityReservation,
   HospitalityResource,
   ReservationStatus,
+  WhatsAppTemplate,
 } from '../../core/models';
 import { problemMessage } from '../../core/problem';
 
@@ -32,6 +33,8 @@ export class HospReservationsPage {
   readonly occupancy = signal<HospitalityOccupancy | null>(null);
   readonly items = signal<HospitalityReservation[]>([]);
   readonly resources = signal<HospitalityResource[]>([]);
+  readonly templates = signal<WhatsAppTemplate[]>([]);
+  readonly templateId = new FormControl('', { nonNullable: true });
   readonly whatsappConfigured = signal(false);
   readonly whatsappDetail = signal('');
   readonly error = signal('');
@@ -59,6 +62,9 @@ export class HospReservationsPage {
         this.whatsappDetail.set(status.detail);
       },
       error: (error: unknown) => this.error.set(problemMessage(error)),
+    });
+    this.api.hospWhatsAppTemplates().subscribe({
+      next: (items) => this.templates.set(items.filter((item) => item.active)),
     });
   }
 
@@ -137,7 +143,7 @@ export class HospReservationsPage {
   notify(item: HospitalityReservation): void {
     this.info.set('');
     this.error.set('');
-    this.api.notifyHospReservation(item.id).subscribe({
+    this.api.notifyHospReservation(item.id, this.templateId.value || null).subscribe({
       next: (message) => {
         this.info.set(`WhatsApp enviado (${message.status}).`);
         this.reload();

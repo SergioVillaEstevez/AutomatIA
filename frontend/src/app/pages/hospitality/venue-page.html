@@ -1,0 +1,26 @@
+<div class="page-head">
+  <div>
+    <h1>Local y reservas online</h1>
+    <p>Activa el widget público y define el slug. El comensal reserva en /reservar/tu-slug.</p>
+  </div>
+</div>
+@if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+@if (info()) { <section class="notice"><strong>Listo</strong><p>{{ info() }}</p></section> }
+
+<section class="card" style="padding: 20px;">
+  <form class="form-grid" novalidate (ngSubmit)="save()">
+    <mat-form-field appearance="outline"><mat-label>Slug público</mat-label><input matInput [formControl]="slug" placeholder="mesa-del-tajo"></mat-form-field>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <mat-slide-toggle [formControl]="enabled">Reservas online activas</mat-slide-toggle>
+    </div>
+    <mat-form-field appearance="outline" class="span-2"><mat-label>Nota al cliente</mat-label><input matInput [formControl]="note"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Ancho plano</mat-label><input matInput [formControl]="floorWidth"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Alto plano</mat-label><input matInput [formControl]="floorHeight"></mat-form-field>
+    <div class="actions span-2">
+      <button mat-flat-button type="submit">Guardar</button>
+      @if (publicPath()) {
+        <a mat-stroked-button [href]="publicPath()" target="_blank" rel="noopener">Abrir widget</a>
+      }
+    </div>
+  </form>
+</section>

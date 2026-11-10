@@ -18,8 +18,12 @@
         }
         <a routerLink="/empresa/datos" routerLinkActive="active">Datos de la empresa</a>
         <a routerLink="/empresa/reservas" routerLinkActive="active">Reservas</a>
+        <a routerLink="/empresa/plano" routerLinkActive="active">Plano</a>
+        <a routerLink="/empresa/tpv" routerLinkActive="active">TPV</a>
         @if (user()?.role === 'COMPANY_ADMIN') {
           <a routerLink="/empresa/mesas" routerLinkActive="active">Mesas</a>
+          <a routerLink="/empresa/local" routerLinkActive="active">Local online</a>
+          <a routerLink="/empresa/plantillas-whatsapp" routerLinkActive="active">Plantillas WA</a>
         }
         <a routerLink="/empresa/ia" routerLinkActive="active">Consumo de IA</a>
         <a routerLink="/empresa/actividad" routerLinkActive="active">Actividad</a>

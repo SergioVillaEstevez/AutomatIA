@@ -22,6 +22,7 @@ public final class AuditActions {
   public static final String HOSP_RESERVATION_CREATED = "HOSP_RESERVATION_CREATED";
   public static final String HOSP_RESERVATION_UPDATED = "HOSP_RESERVATION_UPDATED";
   public static final String HOSP_WHATSAPP_SENT = "HOSP_WHATSAPP_SENT";
+  public static final String HOSP_TICKET_PAID = "HOSP_TICKET_PAID";
 
   private AuditActions() {
   }

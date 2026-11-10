@@ -10,6 +10,10 @@ public record ResourceResponse(
     int seats,
     boolean active,
     int sortOrder,
+    int posX,
+    int posY,
+    int width,
+    int height,
     Instant createdAt,
     Instant updatedAt
 ) {
@@ -20,6 +24,10 @@ public record ResourceResponse(
         resource.getSeats(),
         resource.isActive(),
         resource.getSortOrder(),
+        resource.getPosX(),
+        resource.getPosY(),
+        resource.getWidth(),
+        resource.getHeight(),
         resource.getCreatedAt(),
         resource.getUpdatedAt());
   }
