@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { ApiService } from '../../core/api.service';
-import { actionLabel, formatWhen } from '../../core/labels';
+import { actionLabel, formatAiCost, formatWhen } from '../../core/labels';
 import { AdminDashboard } from '../../core/models';
 import { problemMessage } from '../../core/problem';
 import { ActivityList } from '../shared/activity-list';
@@ -15,6 +15,7 @@ export class AdminDashboardPage {
   readonly data = signal<AdminDashboard | null>(null);
   readonly error = signal('');
   readonly formatWhen = formatWhen;
+  readonly formatAiCost = formatAiCost;
   readonly actionLabel = actionLabel;
 
   constructor() {

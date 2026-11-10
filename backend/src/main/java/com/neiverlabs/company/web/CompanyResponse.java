@@ -27,7 +27,7 @@ public record CompanyResponse(
     Instant updatedAt
 ) {
 
-  public static CompanyResponse from(Company company) {
+  public static CompanyResponse from(Company company, boolean aiBudgetEnforced) {
     return new CompanyResponse(
         company.getId(),
         company.getLegalName(),
@@ -44,7 +44,7 @@ public record CompanyResponse(
         company.getSuspensionReason(),
         company.getPlanLabel(),
         company.getMonthlyAiBudgetEur(),
-        false,
+        aiBudgetEnforced,
         company.getCreatedAt(),
         company.getUpdatedAt());
   }

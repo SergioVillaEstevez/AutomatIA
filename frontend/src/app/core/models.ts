@@ -99,6 +99,8 @@ export interface AdminDashboard {
   suspendedCompanies: number;
   users: number;
   activeUsers: number;
+  monthlyAiSpendEur: number;
+  month: string;
   recentActivity: AuditEntry[];
 }
 
@@ -106,5 +108,59 @@ export interface CompanyDashboard {
   company: Company;
   activeUsers: number;
   disabledUsers: number;
+  monthlyAiSpendEur: number;
+  monthlyAiBudgetEur?: number | null;
+  aiBudgetEnforced: boolean;
+  month: string;
   recentActivity: AuditEntry[];
+}
+
+export type AiUsageStatus = 'SUCCESS' | 'FAILED' | 'BLOCKED';
+
+export interface AiUsageEntry {
+  id: string;
+  companyId: string;
+  userId?: string | null;
+  provider: string;
+  model: string;
+  taskType: string;
+  inputTokens: number;
+  outputTokens: number;
+  estimatedCostUsd?: number | null;
+  estimatedCostEur?: number | null;
+  status: AiUsageStatus;
+  errorCode?: string | null;
+  errorMessage?: string | null;
+  occurredAt: string;
+}
+
+export interface AiUsageSummary {
+  month: string;
+  spentEur: number;
+  budgetEur?: number | null;
+  budgetEnforced: boolean;
+  remainingEur?: number | null;
+}
+
+export interface AiPricing {
+  id: string;
+  provider: string;
+  model: string;
+  inputUsdPerMillion: number;
+  outputUsdPerMillion: number;
+  currency: string;
+  effectiveFrom: string;
+  effectiveTo?: string | null;
+  sourceNote: string;
+}
+
+export interface AiCompletionResult {
+  content: string;
+  provider: string;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  estimatedCostUsd: number;
+  estimatedCostEur: number;
+  usageId: string;
 }

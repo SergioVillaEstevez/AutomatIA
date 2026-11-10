@@ -8,6 +8,8 @@
       @if (user()?.role === 'SUPER_ADMIN') {
         <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Resumen</a>
         <a routerLink="/admin/empresas" routerLinkActive="active">Empresas</a>
+        <a routerLink="/admin/ia" routerLinkActive="active">Consumo de IA</a>
+        <a routerLink="/admin/tarifas-ia" routerLinkActive="active">Tarifas IA</a>
         <a routerLink="/admin/actividad" routerLinkActive="active">Actividad</a>
       } @else {
         <a routerLink="/empresa" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Resumen</a>
@@ -15,10 +17,11 @@
           <a routerLink="/empresa/usuarios" routerLinkActive="active">Usuarios</a>
         }
         <a routerLink="/empresa/datos" routerLinkActive="active">Datos de la empresa</a>
+        <a routerLink="/empresa/ia" routerLinkActive="active">Consumo de IA</a>
         <a routerLink="/empresa/actividad" routerLinkActive="active">Actividad</a>
       }
     </nav>
-    <p class="side-foot">Fase 1</p>
+    <p class="side-foot">Fase 2</p>
   </mat-sidenav>
   <mat-sidenav-content>
     <header class="topbar">

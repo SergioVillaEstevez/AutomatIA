@@ -45,3 +45,25 @@ export function formatMoney(value?: number | null): string {
   }
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(value);
 }
+
+export function formatAiCost(value?: number | null): string {
+  if (value === null || value === undefined) {
+    return '—';
+  }
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 6,
+  }).format(value);
+}
+
+export const AI_STATUS_LABEL: Record<string, string> = {
+  SUCCESS: 'Correcta',
+  FAILED: 'Fallida',
+  BLOCKED: 'Bloqueada',
+};
+
+export function aiStatusLabel(status: string): string {
+  return AI_STATUS_LABEL[status] ?? status;
+}

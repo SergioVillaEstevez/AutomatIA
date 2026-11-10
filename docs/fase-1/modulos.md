@@ -28,7 +28,7 @@ Mientras `passwordChangeRequired` es verdadero, el filtro solo deja pasar el acc
 
 **Componentes.** `CompanyService`, `AdminCompanyController`, `CompanyPortalController`, `SpanishTaxId`.
 
-**Relación.** La suspensión la lee `SessionLoader` en la petición siguiente. El presupuesto mensual se guarda y se devuelve con `aiBudgetEnforced=false`.
+**Relación.** La suspensión la lee `SessionLoader` en la petición siguiente. El presupuesto mensual se guarda; `aiBudgetEnforced` refleja si el servidor aplica el límite (fase 2).
 
 **Prueba.** En `PlatformHttpTest`: dos empresas no se ven, un CIF inválido responde 400, la búsqueda `q=%` devuelve cero elementos, suspender corta una sesión ya abierta y el cambio de contacto no modifica el CIF.
 
@@ -74,7 +74,7 @@ En esta versión no hay correo: quien crea la cuenta entrega la clave temporal p
 
 **Problema.** Las dos pantallas de inicio tienen que enseñar el estado real de la plataforma, no un panel de consumo vacío.
 
-**Cómo funciona.** `GET /api/v1/admin/dashboard` cuenta empresas, empresas activas, suspendidas y usuarios activos, y adjunta la actividad reciente. `GET /api/v1/company/dashboard` cuenta los usuarios de la empresa de la sesión. No hay campos de tokens ni de ejecuciones.
+**Cómo funciona.** `GET /api/v1/admin/dashboard` cuenta empresas, empresas activas, suspendidas y usuarios activos, y adjunta la actividad reciente. `GET /api/v1/company/dashboard` cuenta los usuarios de la empresa de la sesión. Desde la fase 2 ambos resúmenes incluyen el gasto de IA del mes; en la fase 1 esos campos no existían.
 
 **Componentes.** `DashboardService` y los dos controladores bajo `dashboard.web`.
 

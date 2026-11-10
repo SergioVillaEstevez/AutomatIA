@@ -1,7 +1,7 @@
 <div class="page-head">
   <div>
     <h1>Empresas</h1>
-    <p>Cada empresa tiene sus usuarios, su actividad y, más adelante, sus automatizaciones.</p>
+    <p>Cada empresa tiene sus usuarios, su actividad, su límite de IA y, más adelante, sus automatizaciones.</p>
   </div>
   <a mat-flat-button routerLink="/admin/empresas/nueva">Nueva empresa</a>
 </div>
@@ -29,7 +29,7 @@
             <td>{{ company.planLabel }}</td>
             <td>
               {{ formatMoney(company.monthlyAiBudgetEur) }}
-              <div class="muted">Guardado, todavía no se aplica</div>
+              <div class="muted">{{ company.aiBudgetEnforced ? 'Se aplica al consumo' : 'Guardado, no se aplica' }}</div>
             </td>
             <td><span class="pill" [class.ok]="company.status === 'ACTIVE'" [class.bad]="company.status === 'SUSPENDED'">{{ company.status === 'ACTIVE' ? 'Activa' : 'Suspendida' }}</span></td>
             <td><a [routerLink]="['/admin/empresas', company.id]">Abrir</a></td>

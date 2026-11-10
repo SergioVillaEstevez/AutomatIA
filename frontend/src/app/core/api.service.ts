@@ -3,6 +3,10 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   AdminDashboard,
+  AiCompletionResult,
+  AiPricing,
+  AiUsageEntry,
+  AiUsageSummary,
   AuditEntry,
   Company,
   CompanyDashboard,
@@ -83,5 +87,35 @@ export class ApiService {
     const params = new HttpParams().set('page', page).set('size', 20);
     const url = scope === 'admin' ? '/api/v1/admin/audit' : '/api/v1/company/audit';
     return this.http.get<PageResult<AuditEntry>>(url, { params });
+  }
+
+  aiUsage(scope: 'admin' | 'company', page: number): Observable<PageResult<AiUsageEntry>> {
+    const params = new HttpParams().set('page', page).set('size', 20);
+    const url = scope === 'admin' ? '/api/v1/admin/ai/usage' : '/api/v1/company/ai/usage';
+    return this.http.get<PageResult<AiUsageEntry>>(url, { params });
+  }
+
+  aiUsageSummary(scope: 'admin' | 'company'): Observable<AiUsageSummary> {
+    const url = scope === 'admin' ? '/api/v1/admin/ai/usage/summary' : '/api/v1/company/ai/usage/summary';
+    return this.http.get<AiUsageSummary>(url);
+  }
+
+  aiPricing(): Observable<AiPricing[]> {
+    return this.http.get<AiPricing[]>('/api/v1/admin/ai/pricing');
+  }
+
+  createAiPricing(body: {
+    provider: string;
+    model: string;
+    inputUsdPerMillion: number;
+    outputUsdPerMillion: number;
+    sourceNote: string;
+    effectiveFrom?: string | null;
+  }): Observable<AiPricing> {
+    return this.http.post<AiPricing>('/api/v1/admin/ai/pricing', body);
+  }
+
+  completeAi(prompt: string, taskType = 'DEFAULT'): Observable<AiCompletionResult> {
+    return this.http.post<AiCompletionResult>('/api/v1/company/ai/completions', { prompt, taskType });
   }
 }

@@ -11,6 +11,7 @@ import com.neiverlabs.company.web.CreateCompanyRequest;
 import com.neiverlabs.company.web.SuspensionRequest;
 import com.neiverlabs.company.web.UpdateCompanyRequest;
 import com.neiverlabs.company.web.UpdateContactRequest;
+import com.neiverlabs.config.AiProperties;
 import com.neiverlabs.identity.repo.RefreshTokenRepository;
 import com.neiverlabs.identity.repo.UserAccountRepository;
 import com.neiverlabs.identity.security.AccessGuard;
@@ -41,19 +42,26 @@ public class CompanyService {
   private final RefreshTokenRepository refreshTokens;
   private final AuditService audit;
   private final Clock clock;
+  private final AiProperties aiProperties;
 
   public CompanyService(
       CompanyRepository companies,
       UserAccountRepository users,
       RefreshTokenRepository refreshTokens,
       AuditService audit,
-      Clock clock
+      Clock clock,
+      AiProperties aiProperties
   ) {
     this.companies = companies;
     this.users = users;
     this.refreshTokens = refreshTokens;
     this.audit = audit;
     this.clock = clock;
+    this.aiProperties = aiProperties;
+  }
+
+  private CompanyResponse toResponse(Company company) {
+    return CompanyResponse.from(company, aiProperties.isBudgetEnforced());
   }
 
   @Transactional(readOnly = true)
@@ -63,19 +71,19 @@ public class CompanyService {
     Page<Company> page = query == null || query.isBlank()
         ? companies.findAll(safe)
         : companies.search(Text.likePattern(query.trim()), safe);
-    return PageResponse.from(page.map(CompanyResponse::from));
+    return PageResponse.from(page.map(this::toResponse));
   }
 
   @Transactional(readOnly = true)
   public CompanyResponse get(UUID companyId) {
     AccessGuard.requireSuperAdmin();
-    return CompanyResponse.from(require(companyId));
+    return toResponse(require(companyId));
   }
 
   @Transactional(readOnly = true)
   public CompanyResponse current() {
     UUID companyId = AccessGuard.requireTenant();
-    return CompanyResponse.from(require(companyId));
+    return toResponse(require(companyId));
   }
 
   @Transactional
@@ -100,7 +108,7 @@ public class CompanyService {
     companies.save(company);
     audit.record(AuditActions.COMPANY_CREATED, "Company", company.getId(), actor.userId(), company.getId(),
         Map.of("taxId", taxId), context);
-    return CompanyResponse.from(company);
+    return toResponse(company);
   }
 
   @Transactional
@@ -136,7 +144,7 @@ public class CompanyService {
     company.setMonthlyAiBudgetEur(request.monthlyAiBudgetEur());
     audit.record(AuditActions.COMPANY_UPDATED, "Company", company.getId(), actor.userId(), company.getId(),
         Map.of("fields", changed), context);
-    return CompanyResponse.from(company);
+    return toResponse(company);
   }
 
   @Transactional
@@ -157,7 +165,7 @@ public class CompanyService {
     }
     audit.record(AuditActions.COMPANY_UPDATED, "Company", company.getId(), actor.userId(), company.getId(),
         Map.of("fields", List.of("phone", "addressLine", "city", "province", "postalCode")), context);
-    return CompanyResponse.from(company);
+    return toResponse(company);
   }
 
   @Transactional
@@ -171,7 +179,7 @@ public class CompanyService {
         Map.of("reason", request.reason()), context);
     users.bumpSessionsForCompany(companyId);
     refreshTokens.revokeActiveForCompany(companyId, clock.instant());
-    return CompanyResponse.from(require(companyId));
+    return toResponse(require(companyId));
   }
 
   @Transactional
@@ -182,7 +190,7 @@ public class CompanyService {
     company.setSuspensionReason(null);
     audit.record(AuditActions.COMPANY_ACTIVATED, "Company", company.getId(), actor.userId(), company.getId(),
         Map.of(), context);
-    return CompanyResponse.from(company);
+    return toResponse(company);
   }
 
   private Company require(UUID companyId) {

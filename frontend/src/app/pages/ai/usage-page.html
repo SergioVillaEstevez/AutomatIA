@@ -1,0 +1,111 @@
+<div class="page-head">
+  <div>
+    <h1>Consumo de IA</h1>
+    <p>
+      @if (scope() === 'admin') {
+        Gasto estimado del mes en todas las empresas, según las tarifas guardadas.
+      } @else {
+        Gasto estimado de tu empresa este mes y registro de cada petición.
+      }
+    </p>
+  </div>
+</div>
+@if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+
+@if (summary(); as month) {
+  <section class="metrics">
+    <article class="card metric"><span>Mes</span><strong>{{ month.month }}</strong></article>
+    <article class="card metric"><span>Gastado</span><strong>{{ formatAiCost(month.spentEur) }}</strong></article>
+    @if (scope() === 'company') {
+      <article class="card metric"><span>Límite</span><strong>{{ formatMoney(month.budgetEur) }}</strong></article>
+      <article class="card metric">
+        <span>Restante</span>
+        <strong>{{ month.budgetEur == null ? 'Sin tope' : formatAiCost(month.remainingEur) }}</strong>
+      </article>
+    } @else {
+      <article class="card metric"><span>Aplicación del límite</span><strong>{{ month.budgetEnforced ? 'Activa' : 'No' }}</strong></article>
+    }
+  </section>
+  <section class="notice">
+    <strong>Cómo se calcula</strong>
+    <p>
+      El coste sale de tokens × tarifa en USD × conversión a euros del servidor.
+      @if (month.budgetEnforced) {
+        Si una empresa alcanza su límite mensual, las nuevas peticiones se bloquean antes de llamar al proveedor.
+      } @else {
+        El límite está guardado, pero en este despliegue no se aplica todavía.
+      }
+      Sin clave <code>OPENAI_API_KEY</code> en el API no hay respuestas reales; el bloqueo por límite sí funciona.
+    </p>
+  </section>
+}
+
+@if (scope() === 'company') {
+  <section class="card stack" style="padding: 20px; margin-bottom: 16px;">
+    <h2>Probar una petición</h2>
+    <p class="help">Envía un texto corto al modelo configurado. Cuenta contra el límite de la empresa.</p>
+    <mat-form-field appearance="outline">
+      <mat-label>Texto</mat-label>
+      <textarea matInput rows="4" [formControl]="prompt"></textarea>
+    </mat-form-field>
+    <div class="actions">
+      <button mat-flat-button type="button" [disabled]="completing() || prompt.invalid" (click)="tryCompletion()">
+        {{ completing() ? 'Enviando…' : 'Enviar a la IA' }}
+      </button>
+    </div>
+    @if (completion(); as result) {
+      <div class="notice" style="margin-top: 12px;">
+        <strong>{{ result.model }} · {{ formatAiCost(result.estimatedCostEur) }}</strong>
+        <p style="white-space: pre-wrap;">{{ result.content }}</p>
+        <p class="muted">{{ result.inputTokens }} tokens de entrada · {{ result.outputTokens }} de salida</p>
+      </div>
+    }
+  </section>
+}
+
+<section class="card">
+  <h2>Registro</h2>
+  @if (items().length === 0) {
+    <p class="empty">Todavía no hay peticiones de IA.</p>
+  } @else {
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Cuándo</th>
+          <th>Modelo</th>
+          <th>Tokens</th>
+          <th>Coste €</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (entry of items(); track entry.id) {
+          <tr>
+            <td>{{ formatWhen(entry.occurredAt) }}</td>
+            <td>
+              <strong>{{ entry.model }}</strong>
+              <div class="muted">{{ entry.provider }} · {{ entry.taskType }}</div>
+            </td>
+            <td>{{ entry.inputTokens }} / {{ entry.outputTokens }}</td>
+            <td>{{ formatAiCost(entry.estimatedCostEur) }}</td>
+            <td>
+              <span
+                class="pill"
+                [class.ok]="entry.status === 'SUCCESS'"
+                [class.bad]="entry.status !== 'SUCCESS'"
+              >{{ aiStatusLabel(entry.status) }}</span>
+              @if (entry.errorMessage) {
+                <div class="muted">{{ entry.errorMessage }}</div>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+  <div class="pager">
+    <button mat-button type="button" [disabled]="page() <= 1" (click)="load(page() - 1)">Anterior</button>
+    <span class="muted">Página {{ page() }} de {{ totalPages() || 1 }}</span>
+    <button mat-button type="button" [disabled]="page() >= totalPages()" (click)="load(page() + 1)">Siguiente</button>
+  </div>
+</section>

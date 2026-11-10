@@ -96,7 +96,7 @@ class PlatformHttpTest extends AbstractPlatformTest {
     mockMvc.perform(get("/api/v1/company").header(HttpHeaders.AUTHORIZATION, bearer(ana.accessToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.tradeName").value("Transporte Martínez"))
-        .andExpect(jsonPath("$.aiBudgetEnforced").value(false))
+        .andExpect(jsonPath("$.aiBudgetEnforced").value(true))
         .andExpect(jsonPath("$.monthlyAiBudgetEur").value(10.00));
 
     mockMvc.perform(get("/api/v1/company/users").header(HttpHeaders.AUTHORIZATION, bearer(ana.accessToken())))

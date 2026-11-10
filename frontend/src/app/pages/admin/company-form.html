@@ -7,7 +7,7 @@
 </div>
 @if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
 <form class="card" novalidate (ngSubmit)="submit()">
-  <p class="help">El límite mensual de IA se guarda con la empresa. En esta versión no bloquea ninguna operación porque todavía no hay consumo que medir.</p>
+  <p class="help">El límite mensual de IA se guarda con la empresa. Si el servidor tiene la aplicación del límite activa, al alcanzarlo se bloquean nuevas peticiones de IA.</p>
   <div class="form-grid">
     <mat-form-field appearance="outline"><mat-label>Razón social</mat-label><input matInput [formControl]="legalName"></mat-form-field>
     <mat-form-field appearance="outline"><mat-label>Nombre comercial</mat-label><input matInput [formControl]="tradeName"></mat-form-field>
