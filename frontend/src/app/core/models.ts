@@ -164,3 +164,64 @@ export interface AiCompletionResult {
   estimatedCostEur: number;
   usageId: string;
 }
+
+export type ReservationStatus =
+  | 'PENDING'
+  | 'CONFIRMED'
+  | 'SEATED'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'NO_SHOW';
+
+export interface HospitalityResource {
+  id: string;
+  name: string;
+  seats: number;
+  active: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HospitalityReservation {
+  id: string;
+  resourceId?: string | null;
+  resourceName?: string | null;
+  guestName: string;
+  guestPhone?: string | null;
+  partySize: number;
+  startsAt: string;
+  endsAt: string;
+  status: ReservationStatus;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HospitalityOccupancy {
+  day: string;
+  zone: string;
+  activeSeats: number;
+  reservedCovers: number;
+  openReservations: number;
+  occupancyRatio: number;
+  reservations: HospitalityReservation[];
+}
+
+export interface WhatsAppStatus {
+  configured: boolean;
+  detail: string;
+}
+
+export interface WhatsAppMessageResult {
+  id: string;
+  reservationId?: string | null;
+  phone: string;
+  body: string;
+  status: 'SENT' | 'FAILED' | 'SKIPPED';
+  providerMessageId?: string | null;
+  errorCode?: string | null;
+  errorMessage?: string | null;
+  createdAt: string;
+  whatsappConfigured: boolean;
+}

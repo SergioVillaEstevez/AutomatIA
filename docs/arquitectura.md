@@ -130,6 +130,7 @@ El detalle de cada uno, y cómo probarlo, está en [fase-1/modulos.md](fase-1/mo
 | Fase | Se añade | No se adelanta |
 | --- | --- | --- |
 | 2 | `AIProvider`, OpenAI, precios por modelo, registro de tokens y bloqueo al llegar al presupuesto | Ollama y la interfaz de chat |
+| Hostelería-1 | Mesas, reservas, ocupación del día, aviso WhatsApp Cloud API | Widget público de reservas, TPV, plantillas WhatsApp en UI |
 | 3 | Automatizaciones, ejecuciones y webhooks firmados | Los tres procesos de negocio |
 | 4 | Gráficos con esas cifras reales | Conteos inventados |
 | 5 | Facturas y albaranes, asistente con datos de la empresa, pedidos | Envío externo sin consentimiento |

@@ -22,6 +22,11 @@ export const ACTION_LABEL: Record<string, string> = {
   USER_DISABLED: 'Usuario desactivado',
   USER_ENABLED: 'Usuario activado',
   USER_PASSWORD_RESET: 'Clave temporal restablecida',
+  HOSP_RESOURCE_CREATED: 'Alta de mesa',
+  HOSP_RESOURCE_UPDATED: 'Cambio de mesa',
+  HOSP_RESERVATION_CREATED: 'Alta de reserva',
+  HOSP_RESERVATION_UPDATED: 'Cambio de reserva',
+  HOSP_WHATSAPP_SENT: 'Aviso WhatsApp de reserva',
 };
 
 export function actionLabel(action: string): string {
@@ -66,4 +71,17 @@ export const AI_STATUS_LABEL: Record<string, string> = {
 
 export function aiStatusLabel(status: string): string {
   return AI_STATUS_LABEL[status] ?? status;
+}
+
+export const HOSP_STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Pendiente',
+  CONFIRMED: 'Confirmada',
+  SEATED: 'Sentada',
+  COMPLETED: 'Cerrada',
+  CANCELLED: 'Cancelada',
+  NO_SHOW: 'No presentado',
+};
+
+export function hospStatusLabel(status: string): string {
+  return HOSP_STATUS_LABEL[status] ?? status;
 }

@@ -49,9 +49,14 @@ management:
 info:
   app:
     name: Neiver Labs
-    phase: 2
+    phase: hospitality-1
 
 neiver:
+  whatsapp:
+    access-token: ${WHATSAPP_ACCESS_TOKEN:}
+    phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+    api-base-url: ${WHATSAPP_API_BASE_URL:https://graph.facebook.com/v21.0}
+    timeout-seconds: 30
   ai:
     openai-api-key: ${OPENAI_API_KEY:}
     openai-base-url: ${OPENAI_BASE_URL:https://api.openai.com}

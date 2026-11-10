@@ -1,0 +1,46 @@
+<div class="page-head">
+  <div>
+    <h1>Mesas</h1>
+    <p>Recursos reservables del local. La ocupación del día se calcula con las plazas activas.</p>
+  </div>
+</div>
+@if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+
+<section class="card" style="padding: 20px; margin-bottom: 16px;">
+  <h2>Nueva mesa</h2>
+  <form class="form-grid" novalidate (ngSubmit)="create()">
+    <mat-form-field appearance="outline"><mat-label>Nombre</mat-label><input matInput [formControl]="name" placeholder="Mesa 1"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Plazas</mat-label><input matInput inputmode="numeric" [formControl]="seats"></mat-form-field>
+    <div class="actions span-2">
+      <button mat-flat-button type="submit" [disabled]="submitting()">Añadir</button>
+    </div>
+  </form>
+</section>
+
+<section class="card">
+  @if (items().length === 0) {
+    <p class="empty">Todavía no hay mesas. Sin mesas activas la ocupación del día saldrá a cero de capacidad.</p>
+  } @else {
+    <table class="data">
+      <thead><tr><th>Nombre</th><th>Plazas</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        @for (item of items(); track item.id) {
+          <tr>
+            <td><strong>{{ item.name }}</strong></td>
+            <td>{{ item.seats }}</td>
+            <td>
+              <span class="pill" [class.ok]="item.active" [class.bad]="!item.active">
+                {{ item.active ? 'Activa' : 'Desactivada' }}
+              </span>
+            </td>
+            <td>
+              <button mat-button type="button" (click)="toggle(item)">
+                {{ item.active ? 'Desactivar' : 'Activar' }}
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

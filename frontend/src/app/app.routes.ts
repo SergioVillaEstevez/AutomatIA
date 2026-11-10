@@ -14,6 +14,8 @@ import { CompanyProfilePage } from './pages/company/profile';
 import { UserManager } from './pages/shared/user-manager';
 import { AiUsagePage } from './pages/ai/usage-page';
 import { AiPricingPage } from './pages/ai/pricing-page';
+import { HospReservationsPage } from './pages/hospitality/reservations-page';
+import { HospResourcesPage } from './pages/hospitality/resources-page';
 
 export const routes: Routes = [
   { path: 'login', component: LoginPage, canActivate: [guestGuard] },
@@ -45,6 +47,8 @@ export const routes: Routes = [
           { path: '', component: CompanyDashboardPage },
           { path: 'usuarios', component: UserManager, canActivate: [roleGuard('COMPANY_ADMIN')] },
           { path: 'datos', component: CompanyProfilePage },
+          { path: 'reservas', component: HospReservationsPage },
+          { path: 'mesas', component: HospResourcesPage, canActivate: [roleGuard('COMPANY_ADMIN')] },
           { path: 'ia', component: AiUsagePage, data: { scope: 'company' } },
           { path: 'actividad', component: AuditPage, data: { scope: 'company' } },
         ],

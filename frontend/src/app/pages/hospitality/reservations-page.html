@@ -1,0 +1,93 @@
+<div class="page-head">
+  <div>
+    <h1>Reservas</h1>
+    <p>Agenda del local (zona Europe/Madrid) y ocupación del día según mesas activas.</p>
+  </div>
+  <mat-form-field appearance="outline">
+    <mat-label>Día</mat-label>
+    <input matInput type="date" [value]="day()" (change)="changeDay($any($event.target).value)">
+  </mat-form-field>
+</div>
+@if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+@if (info()) { <section class="notice"><strong>WhatsApp</strong><p>{{ info() }}</p></section> }
+
+@if (occupancy(); as dayOcc) {
+  <section class="metrics">
+    <article class="card metric"><span>Plazas activas</span><strong>{{ dayOcc.activeSeats }}</strong></article>
+    <article class="card metric"><span>Comensales reservados</span><strong>{{ dayOcc.reservedCovers }}</strong></article>
+    <article class="card metric"><span>Reservas abiertas</span><strong>{{ dayOcc.openReservations }}</strong></article>
+    <article class="card metric"><span>Ocupación</span><strong>{{ occupancyPercent() }}</strong></article>
+  </section>
+}
+
+<section class="notice">
+  <strong>WhatsApp</strong>
+  <p>{{ whatsappDetail() || 'Comprobando configuración…' }}</p>
+</section>
+
+<section class="card" style="padding: 20px; margin-bottom: 16px;">
+  <h2>Nueva reserva</h2>
+  <form class="form-grid" novalidate (ngSubmit)="create()">
+    <mat-form-field appearance="outline"><mat-label>Nombre</mat-label><input matInput [formControl]="guestName"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Teléfono</mat-label><input matInput [formControl]="guestPhone" placeholder="600111222"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Comensales</mat-label><input matInput inputmode="numeric" [formControl]="partySize"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Hora</mat-label><input matInput type="time" [formControl]="time"></mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Mesa</mat-label>
+      <mat-select [formControl]="resourceId">
+        <mat-option value="">Sin mesa asignada</mat-option>
+        @for (resource of resources(); track resource.id) {
+          <mat-option [value]="resource.id">{{ resource.name }} ({{ resource.seats }})</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="span-2"><mat-label>Notas</mat-label><input matInput [formControl]="notes"></mat-form-field>
+    <div class="actions span-2">
+      <button mat-flat-button type="submit" [disabled]="submitting()">Guardar reserva</button>
+    </div>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Del día {{ day() }}</h2>
+  @if (items().length === 0) {
+    <p class="empty">No hay reservas en este día.</p>
+  } @else {
+    <table class="data">
+      <thead>
+        <tr><th>Hora</th><th>Cliente</th><th>Mesa</th><th>Estado</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (item of items(); track item.id) {
+          <tr>
+            <td>{{ formatWhen(item.startsAt) }}</td>
+            <td>
+              <strong>{{ item.guestName }}</strong>
+              <div class="muted">{{ item.partySize }} comensales · {{ item.guestPhone || 'sin teléfono' }}</div>
+            </td>
+            <td>{{ item.resourceName || '—' }}</td>
+            <td>
+              <span class="pill" [class.ok]="item.status === 'CONFIRMED' || item.status === 'SEATED'" [class.bad]="item.status === 'CANCELLED' || item.status === 'NO_SHOW'">
+                {{ hospStatusLabel(item.status) }}
+              </span>
+            </td>
+            <td class="row-actions">
+              @if (item.status === 'CONFIRMED' || item.status === 'PENDING') {
+                <button mat-button type="button" (click)="setStatus(item, 'SEATED')">Sentar</button>
+                <button mat-button type="button" (click)="setStatus(item, 'CANCELLED')">Cancelar</button>
+              }
+              @if (item.status === 'SEATED') {
+                <button mat-button type="button" (click)="setStatus(item, 'COMPLETED')">Cerrar</button>
+              }
+              @if (item.guestPhone) {
+                <button mat-stroked-button type="button" (click)="notify(item)" [disabled]="!whatsappConfigured()">
+                  WhatsApp
+                </button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

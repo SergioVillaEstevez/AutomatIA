@@ -11,8 +11,14 @@ import {
   Company,
   CompanyDashboard,
   CompanyPayload,
+  HospitalityOccupancy,
+  HospitalityReservation,
+  HospitalityResource,
   ManagedUser,
   PageResult,
+  ReservationStatus,
+  WhatsAppMessageResult,
+  WhatsAppStatus,
 } from './models';
 
 @Injectable({ providedIn: 'root' })
@@ -117,5 +123,73 @@ export class ApiService {
 
   completeAi(prompt: string, taskType = 'DEFAULT'): Observable<AiCompletionResult> {
     return this.http.post<AiCompletionResult>('/api/v1/company/ai/completions', { prompt, taskType });
+  }
+
+  hospResources(): Observable<HospitalityResource[]> {
+    return this.http.get<HospitalityResource[]>('/api/v1/company/hospitality/resources');
+  }
+
+  createHospResource(body: { name: string; seats: number; sortOrder?: number; active?: boolean }): Observable<HospitalityResource> {
+    return this.http.post<HospitalityResource>('/api/v1/company/hospitality/resources', body);
+  }
+
+  updateHospResource(
+    id: string,
+    body: { name: string; seats: number; sortOrder?: number; active?: boolean },
+  ): Observable<HospitalityResource> {
+    return this.http.put<HospitalityResource>(`/api/v1/company/hospitality/resources/${id}`, body);
+  }
+
+  hospReservations(day: string | null, page: number): Observable<PageResult<HospitalityReservation>> {
+    let params = new HttpParams().set('page', page).set('size', 50);
+    if (day) {
+      params = params.set('day', day);
+    }
+    return this.http.get<PageResult<HospitalityReservation>>('/api/v1/company/hospitality/reservations', { params });
+  }
+
+  createHospReservation(body: {
+    resourceId?: string | null;
+    guestName: string;
+    guestPhone?: string | null;
+    partySize: number;
+    startsAt: string;
+    endsAt?: string | null;
+    status?: ReservationStatus;
+    notes?: string | null;
+  }): Observable<HospitalityReservation> {
+    return this.http.post<HospitalityReservation>('/api/v1/company/hospitality/reservations', body);
+  }
+
+  updateHospReservation(
+    id: string,
+    body: {
+      resourceId?: string | null;
+      guestName: string;
+      guestPhone?: string | null;
+      partySize: number;
+      startsAt: string;
+      endsAt: string;
+      status: ReservationStatus;
+      notes?: string | null;
+    },
+  ): Observable<HospitalityReservation> {
+    return this.http.put<HospitalityReservation>(`/api/v1/company/hospitality/reservations/${id}`, body);
+  }
+
+  hospOccupancy(day?: string | null): Observable<HospitalityOccupancy> {
+    let params = new HttpParams();
+    if (day) {
+      params = params.set('day', day);
+    }
+    return this.http.get<HospitalityOccupancy>('/api/v1/company/hospitality/occupancy', { params });
+  }
+
+  hospWhatsAppStatus(): Observable<WhatsAppStatus> {
+    return this.http.get<WhatsAppStatus>('/api/v1/company/hospitality/whatsapp/status');
+  }
+
+  notifyHospReservation(id: string): Observable<WhatsAppMessageResult> {
+    return this.http.post<WhatsAppMessageResult>(`/api/v1/company/hospitality/reservations/${id}/whatsapp`, {});
   }
 }
