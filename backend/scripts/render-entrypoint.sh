@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Arranque en Render: convierte DATABASE_URL al JDBC de Spring y asegura
-# los roles neiver_migrator / neiver_app (sin superusuario ni BYPASSRLS).
+# Arranque en Render: convierte DATABASE_URL al JDBC de Spring.
+# En el plan free el usuario de Render no es superusuario y a menudo no puede
+# ALTER ROLE. Usamos ese usuario para la API y para Flyway. Los roles
+# neiver_app / neiver_migrator solo se crean si faltan, porque Flyway les hace GRANT.
 set -euo pipefail
 
 url_decode() {
@@ -14,7 +16,6 @@ if [[ -n "${DATABASE_URL:-}" && -z "${NEIVER_DB_URL:-}" ]]; then
   render_user="$(url_decode "${userinfo%%:*}")"
   render_pass="$(url_decode "${userinfo#*:}")"
   hostport="${hostpart%%/*}"
-  # Render a veces entrega host sin puerto (p. ej. dpg-xxxx-a).
   if [[ "${hostport}" == *:* ]]; then
     host="${hostport%:*}"
     port="${hostport##*:}"
@@ -25,11 +26,13 @@ if [[ -n "${DATABASE_URL:-}" && -z "${NEIVER_DB_URL:-}" ]]; then
   fi
   dbname="${hostpart#*/}"
   dbname="${dbname%%\?*}"
+
   export NEIVER_DB_URL="jdbc:postgresql://${hostport}/${dbname}?sslmode=${PGSSLMODE:-require}"
-  export NEIVER_DB_USER="${NEIVER_DB_USER:-neiver_app}"
-  export NEIVER_DB_PASSWORD="${NEIVER_DB_PASSWORD:-}"
-  export NEIVER_DB_MIGRATOR_USER="${NEIVER_DB_MIGRATOR_USER:-neiver_migrator}"
-  export NEIVER_DB_MIGRATOR_PASSWORD="${NEIVER_DB_MIGRATOR_PASSWORD:-}"
+  # Misma cuenta para API y migraciones: el free de Render no permite administrar roles.
+  export NEIVER_DB_USER="${render_user}"
+  export NEIVER_DB_PASSWORD="${render_pass}"
+  export NEIVER_DB_MIGRATOR_USER="${render_user}"
+  export NEIVER_DB_MIGRATOR_PASSWORD="${render_pass}"
   export RENDER_PG_ADMIN_USER="${render_user}"
   export RENDER_PG_ADMIN_PASSWORD="${render_pass}"
   export RENDER_PG_HOST="${host}"
@@ -37,7 +40,7 @@ if [[ -n "${DATABASE_URL:-}" && -z "${NEIVER_DB_URL:-}" ]]; then
   export RENDER_PG_DB="${dbname}"
 fi
 
-if [[ -n "${RENDER_PG_ADMIN_USER:-}" && -n "${NEIVER_DB_PASSWORD:-}" && -n "${NEIVER_DB_MIGRATOR_PASSWORD:-}" ]]; then
+if [[ -n "${RENDER_PG_ADMIN_USER:-}" ]]; then
   python3 <<'PY'
 import os
 import subprocess
@@ -59,41 +62,48 @@ uri = f"host={host} port={port} dbname={dbname} user={user} sslmode={sslmode}"
 env = os.environ.copy()
 env["PGPASSWORD"] = password
 
-def psql(*sql: str) -> None:
-    cmd = ["psql", uri, "-v", "ON_ERROR_STOP=1"]
-    for statement in sql:
-        cmd.extend(["-c", statement])
-    subprocess.check_call(cmd, env=env)
-
-def role_exists(role: str) -> bool:
-    result = subprocess.run(
-        ["psql", uri, "-Atqc", f"SELECT 1 FROM pg_roles WHERE rolname = {lit(role)}"],
+def run(sql: str, check: bool = True) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        ["psql", uri, "-v", "ON_ERROR_STOP=1", "-c", sql],
         env=env,
-        check=True,
+        check=check,
         capture_output=True,
         text=True,
     )
-    return result.stdout.strip() == "1"
 
-def ensure_role(role: str, role_password: str) -> None:
+def role_exists(role: str) -> bool:
+    result = run(f"SELECT 1 FROM pg_roles WHERE rolname = {lit(role)}")
+    return "1" in result.stdout
+
+# Solo CREATE IF NOT EXISTS. Nunca ALTER: en Render free suele denegarse.
+for role in ("neiver_migrator", "neiver_app"):
     if role_exists(role):
-        psql(
-            f"ALTER ROLE {role} WITH LOGIN PASSWORD {lit(role_password)} NOSUPERUSER NOBYPASSRLS"
+        print(f"Rol {role} ya existe; no se altera.", file=sys.stderr)
+        continue
+    result = run(
+        f"CREATE ROLE {role} NOSUPERUSER NOBYPASSRLS NOLOGIN",
+        check=False,
+    )
+    if result.returncode != 0:
+        print(
+            f"No se pudo crear {role} ({result.stderr.strip()}). "
+            "Si Flyway falla en GRANT, hay que usar un plan con CREATEROLE.",
+            file=sys.stderr,
         )
     else:
-        psql(
-            f"CREATE ROLE {role} LOGIN PASSWORD {lit(role_password)} NOSUPERUSER NOBYPASSRLS"
-        )
+        print(f"Rol {role} creado.", file=sys.stderr)
 
-ensure_role("neiver_migrator", os.environ["NEIVER_DB_MIGRATOR_PASSWORD"])
-ensure_role("neiver_app", os.environ["NEIVER_DB_PASSWORD"])
-psql(
+for sql in (
     f"GRANT CONNECT ON DATABASE {ident(dbname)} TO neiver_migrator",
     f"GRANT CONNECT ON DATABASE {ident(dbname)} TO neiver_app",
-    "ALTER SCHEMA public OWNER TO neiver_migrator",
     "GRANT USAGE ON SCHEMA public TO neiver_app",
-)
-print("Roles neiver_migrator y neiver_app listos.", file=sys.stderr)
+    "GRANT USAGE ON SCHEMA public TO neiver_migrator",
+):
+    result = run(sql, check=False)
+    if result.returncode != 0:
+        print(f"Aviso: {sql} -> {result.stderr.strip()}", file=sys.stderr)
+
+print("Bootstrap de roles terminado (API y Flyway usan la cuenta de Render).", file=sys.stderr)
 PY
 fi
 
