@@ -1,0 +1,12 @@
+# Sitio de Netlify. /api se reenvía al backend de Render para que la cookie
+# de renovación siga siendo de la misma origen (SameSite=Strict).
+[build]
+  base = "frontend"
+  command = "npm run build && node scripts/write-redirects.mjs"
+  publish = "dist/frontend/browser"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# El origen del API se define en la variable NEIVER_API_ORIGIN del sitio.
+# Ejemplo: https://neiver-api.onrender.com

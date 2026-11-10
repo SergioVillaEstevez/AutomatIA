@@ -61,6 +61,13 @@ Las pruebas del backend arrancan un PostgreSQL embebido, aplican Flyway y compru
 
 El perfil `prod` no trae secretos. Hay que definir las variables de [.env.example](.env.example). La aplicación no arranca si el secreto JWT es corto, si coincide con el de desarrollo, si la cookie no va marcada como segura o si el rol de base de datos puede saltarse Row Level Security.
 
+## Despliegue (Render + Netlify)
+
+- Backend y PostgreSQL: Blueprint en [render.yaml](render.yaml).
+- Frontend: [frontend/netlify.toml](frontend/netlify.toml). Netlify reenvía `/api` al origen de Render (`NEIVER_API_ORIGIN`) para que la cookie de renovación siga siendo de la misma origen.
+
+Tras crear el API en Render, anota su URL HTTPS y úsala como `NEIVER_API_ORIGIN` en Netlify. En Render, define también `NEIVER_CORS_ALLOWED_ORIGINS` con la URL del sitio de Netlify, el correo y la clave del primer administrador general.
+
 ## Documentación de la fase
 
 - [Arquitectura, riesgos y modelo de datos](docs/arquitectura.md)
