@@ -42,3 +42,7 @@ services:
         value: gpt-4.1-mini
       - key: NEIVER_USD_TO_EUR
         value: "0.92"
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false

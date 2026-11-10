@@ -17,6 +17,11 @@ public final class AuditActions {
   public static final String USER_DISABLED = "USER_DISABLED";
   public static final String USER_ENABLED = "USER_ENABLED";
   public static final String USER_PASSWORD_RESET = "USER_PASSWORD_RESET";
+  public static final String HOSP_RESOURCE_CREATED = "HOSP_RESOURCE_CREATED";
+  public static final String HOSP_RESOURCE_UPDATED = "HOSP_RESOURCE_UPDATED";
+  public static final String HOSP_RESERVATION_CREATED = "HOSP_RESERVATION_CREATED";
+  public static final String HOSP_RESERVATION_UPDATED = "HOSP_RESERVATION_UPDATED";
+  public static final String HOSP_WHATSAPP_SENT = "HOSP_WHATSAPP_SENT";
 
   private AuditActions() {
   }
