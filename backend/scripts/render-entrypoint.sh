@@ -38,30 +38,63 @@ if [[ -n "${DATABASE_URL:-}" && -z "${NEIVER_DB_URL:-}" ]]; then
 fi
 
 if [[ -n "${RENDER_PG_ADMIN_USER:-}" && -n "${NEIVER_DB_PASSWORD:-}" && -n "${NEIVER_DB_MIGRATOR_PASSWORD:-}" ]]; then
-  export PGPASSWORD="${RENDER_PG_ADMIN_PASSWORD}"
-  admin_uri="host=${RENDER_PG_HOST} port=${RENDER_PG_PORT} dbname=${RENDER_PG_DB} user=${RENDER_PG_ADMIN_USER} sslmode=${PGSSLMODE:-require}"
+  python3 <<'PY'
+import os
+import subprocess
+import sys
 
-  ensure_role() {
-    local role="$1"
-    local password="$2"
-    if psql "${admin_uri}" -Atqc "SELECT 1 FROM pg_roles WHERE rolname = '${role}'" | grep -q 1; then
-      psql "${admin_uri}" -v ON_ERROR_STOP=1 -v pwd="${password}" \
-        -c "ALTER ROLE ${role} WITH LOGIN PASSWORD :'pwd' NOSUPERUSER NOBYPASSRLS"
-    else
-      psql "${admin_uri}" -v ON_ERROR_STOP=1 -v pwd="${password}" \
-        -c "CREATE ROLE ${role} LOGIN PASSWORD :'pwd' NOSUPERUSER NOBYPASSRLS"
-    fi
-  }
+def lit(value: str) -> str:
+    return "'" + value.replace("'", "''") + "'"
 
-  ensure_role neiver_migrator "${NEIVER_DB_MIGRATOR_PASSWORD}"
-  ensure_role neiver_app "${NEIVER_DB_PASSWORD}"
-  psql "${admin_uri}" -v ON_ERROR_STOP=1 \
-    -c "GRANT CONNECT ON DATABASE \"${RENDER_PG_DB}\" TO neiver_migrator" \
-    -c "GRANT CONNECT ON DATABASE \"${RENDER_PG_DB}\" TO neiver_app" \
-    -c "ALTER SCHEMA public OWNER TO neiver_migrator" \
-    -c "GRANT USAGE ON SCHEMA public TO neiver_app"
-  unset PGPASSWORD
-  echo "Roles neiver_migrator y neiver_app listos."
+def ident(value: str) -> str:
+    return '"' + value.replace('"', '""') + '"'
+
+host = os.environ["RENDER_PG_HOST"]
+port = os.environ["RENDER_PG_PORT"]
+dbname = os.environ["RENDER_PG_DB"]
+user = os.environ["RENDER_PG_ADMIN_USER"]
+password = os.environ["RENDER_PG_ADMIN_PASSWORD"]
+sslmode = os.environ.get("PGSSLMODE", "require")
+uri = f"host={host} port={port} dbname={dbname} user={user} sslmode={sslmode}"
+env = os.environ.copy()
+env["PGPASSWORD"] = password
+
+def psql(*sql: str) -> None:
+    cmd = ["psql", uri, "-v", "ON_ERROR_STOP=1"]
+    for statement in sql:
+        cmd.extend(["-c", statement])
+    subprocess.check_call(cmd, env=env)
+
+def role_exists(role: str) -> bool:
+    result = subprocess.run(
+        ["psql", uri, "-Atqc", f"SELECT 1 FROM pg_roles WHERE rolname = {lit(role)}"],
+        env=env,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip() == "1"
+
+def ensure_role(role: str, role_password: str) -> None:
+    if role_exists(role):
+        psql(
+            f"ALTER ROLE {role} WITH LOGIN PASSWORD {lit(role_password)} NOSUPERUSER NOBYPASSRLS"
+        )
+    else:
+        psql(
+            f"CREATE ROLE {role} LOGIN PASSWORD {lit(role_password)} NOSUPERUSER NOBYPASSRLS"
+        )
+
+ensure_role("neiver_migrator", os.environ["NEIVER_DB_MIGRATOR_PASSWORD"])
+ensure_role("neiver_app", os.environ["NEIVER_DB_PASSWORD"])
+psql(
+    f"GRANT CONNECT ON DATABASE {ident(dbname)} TO neiver_migrator",
+    f"GRANT CONNECT ON DATABASE {ident(dbname)} TO neiver_app",
+    "ALTER SCHEMA public OWNER TO neiver_migrator",
+    "GRANT USAGE ON SCHEMA public TO neiver_app",
+)
+print("Roles neiver_migrator y neiver_app listos.", file=sys.stderr)
+PY
 fi
 
 export SPRING_PROFILES_ACTIVE="${SPRING_PROFILES_ACTIVE:-prod}"
