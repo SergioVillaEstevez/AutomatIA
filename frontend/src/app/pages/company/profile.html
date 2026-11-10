@@ -1,0 +1,29 @@
+<div class="page-head">
+  <div>
+    <h1>Datos de la empresa</h1>
+    <p>La razón social y el CIF los mantiene Neiver Labs.</p>
+  </div>
+</div>
+@if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+@if (company(); as current) {
+  <section class="card">
+    <p><strong>{{ current.legalName }}</strong></p>
+    <p class="muted">{{ current.taxId }} · {{ current.email }} · {{ current.planLabel }}</p>
+    @if (auth.user()?.role === 'COMPANY_ADMIN') {
+      <form class="form-grid" novalidate (ngSubmit)="save()">
+        <mat-form-field appearance="outline"><mat-label>Teléfono</mat-label><input matInput [formControl]="phone"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Municipio</mat-label><input matInput [formControl]="city"></mat-form-field>
+        <mat-form-field appearance="outline" class="span-2"><mat-label>Dirección</mat-label><input matInput [formControl]="addressLine"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Provincia</mat-label><input matInput [formControl]="province"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Código postal</mat-label><input matInput [formControl]="postalCode"></mat-form-field>
+        <div class="actions span-2">
+          <button mat-flat-button type="submit">Guardar contacto</button>
+          @if (saved()) { <span class="muted">Contacto actualizado.</span> }
+        </div>
+      </form>
+    } @else {
+      <p>{{ current.addressLine }} {{ current.postalCode }} {{ current.city }} {{ current.province }}</p>
+      <p class="help">Solo un administrador de la empresa puede cambiar el teléfono y la dirección.</p>
+    }
+  </section>
+}

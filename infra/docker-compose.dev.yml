@@ -1,0 +1,20 @@
+# Solo PostgreSQL, y solo en la máquina de desarrollo.
+# El despliegue con Nginx, n8n y copias de seguridad es la fase 6.
+# PostgreSQL escucha en 127.0.0.1, no en la red exterior.
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: neiver
+      NEIVER_DB_APP_PASSWORD: neiver_app_dev
+      NEIVER_DB_MIGRATOR_PASSWORD: neiver_migrator_dev
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - neiver_pg:/var/lib/postgresql/data
+      - ./postgres/init-roles.sh:/docker-entrypoint-initdb.d/01-roles.sh:ro
+
+volumes:
+  neiver_pg:

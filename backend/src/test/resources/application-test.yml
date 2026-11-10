@@ -1,0 +1,25 @@
+neiver:
+  security:
+    jwt-secret: test-jwt-secret-neiver-labs-32bytes
+    cookie-secure: false
+    bcrypt-strength: 4
+    login-attempts-per-minute: 10000
+    max-failed-logins: 3
+    lock-minutes: 15
+    super-admin-email: ""
+    super-admin-password: ""
+  api-docs:
+    enabled: false
+
+spring:
+  datasource:
+    username: neiver_app
+    password: test_app
+  flyway:
+    user: neiver_migrator
+    password: test_migrator
+
+logging:
+  level:
+    root: warn
+    com.neiverlabs: info

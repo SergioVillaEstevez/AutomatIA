@@ -1,0 +1,29 @@
+@if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+@if (data(); as dashboard) {
+  <div class="page-head">
+    <div>
+      <h1>{{ dashboard.company.tradeName }}</h1>
+      <p>{{ dashboard.company.legalName }}</p>
+    </div>
+  </div>
+  <section class="notice">
+    <strong>Tu espacio</strong>
+    <p>
+      Aquí ves usuarios, actividad y el consumo de IA del mes {{ dashboard.month }}.
+      Las automatizaciones y los documentos se añadirán en fases posteriores.
+    </p>
+  </section>
+  <section class="metrics">
+    <article class="card metric"><span>Usuarios activos</span><strong>{{ dashboard.activeUsers }}</strong></article>
+    <article class="card metric"><span>Usuarios desactivados</span><strong>{{ dashboard.disabledUsers }}</strong></article>
+    <article class="card metric"><span>Estado</span><strong>{{ dashboard.company.status === 'ACTIVE' ? 'Activa' : 'Suspendida' }}</strong></article>
+    <article class="card metric"><span>Plan</span><strong>{{ dashboard.company.planLabel }}</strong></article>
+    <article class="card metric"><span>IA gastada</span><strong>{{ formatAiCost(dashboard.monthlyAiSpendEur) }}</strong></article>
+    <article class="card metric">
+      <span>Límite IA</span>
+      <strong>{{ formatMoney(dashboard.monthlyAiBudgetEur) }}</strong>
+      <div class="muted">{{ dashboard.aiBudgetEnforced ? 'Se aplica' : 'No se aplica' }}</div>
+    </article>
+  </section>
+  <app-activity-list [entries]="dashboard.recentActivity" />
+}

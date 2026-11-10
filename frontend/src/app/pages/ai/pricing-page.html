@@ -1,0 +1,60 @@
+<div class="page-head">
+  <div>
+    <h1>Tarifas de modelos</h1>
+    <p>Precios en USD por millón de tokens. Al crear una fila nueva se cierra la tarifa anterior del mismo modelo.</p>
+  </div>
+</div>
+@if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+
+<section class="card" style="padding: 20px; margin-bottom: 16px;">
+  <h2>Nueva tarifa</h2>
+  <p class="help">Copia los importes de la documentación pública del proveedor y anota la fuente. No inventes precios.</p>
+  <form class="form-grid" novalidate (ngSubmit)="submit()">
+    <mat-form-field appearance="outline"><mat-label>Proveedor</mat-label><input matInput [formControl]="provider"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Modelo</mat-label><input matInput [formControl]="model" placeholder="gpt-4.1-mini"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Entrada USD / M tokens</mat-label><input matInput inputmode="decimal" [formControl]="inputUsd"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Salida USD / M tokens</mat-label><input matInput inputmode="decimal" [formControl]="outputUsd"></mat-form-field>
+    <mat-form-field appearance="outline" class="span-2"><mat-label>Fuente</mat-label><input matInput [formControl]="sourceNote"></mat-form-field>
+    <div class="actions span-2">
+      <button mat-flat-button type="submit" [disabled]="submitting()">Guardar tarifa</button>
+    </div>
+  </form>
+</section>
+
+<section class="card">
+  @if (items().length === 0) {
+    <p class="empty">No hay tarifas cargadas.</p>
+  } @else {
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Proveedor</th>
+          <th>Modelo</th>
+          <th>Entrada</th>
+          <th>Salida</th>
+          <th>Vigencia</th>
+          <th>Fuente</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of items(); track row.id) {
+          <tr>
+            <td>{{ row.provider }}</td>
+            <td><strong>{{ row.model }}</strong></td>
+            <td>{{ row.inputUsdPerMillion }} USD</td>
+            <td>{{ row.outputUsdPerMillion }} USD</td>
+            <td>
+              {{ formatWhen(row.effectiveFrom) }}
+              @if (row.effectiveTo) {
+                <div class="muted">hasta {{ formatWhen(row.effectiveTo) }}</div>
+              } @else {
+                <div class="muted">vigente</div>
+              }
+            </td>
+            <td class="muted">{{ row.sourceNote }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

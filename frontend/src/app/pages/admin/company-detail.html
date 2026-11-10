@@ -1,0 +1,27 @@
+@if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+@if (company(); as current) {
+  <div class="page-head">
+    <div>
+      <h1>{{ current.tradeName }}</h1>
+      <p>{{ current.legalName }} · {{ current.taxId }}</p>
+    </div>
+    <div class="actions">
+      <a mat-stroked-button [routerLink]="['/admin/empresas', current.id, 'editar']">Editar</a>
+      @if (current.status === 'ACTIVE') {
+        <button mat-button type="button" (click)="suspend()">Suspender</button>
+      } @else {
+        <button mat-flat-button type="button" (click)="activate()">Reactivar</button>
+      }
+    </div>
+  </div>
+  <section class="metrics">
+    <article class="card metric"><span>Estado</span><strong>{{ current.status === 'ACTIVE' ? 'Activa' : 'Suspendida' }}</strong></article>
+    <article class="card metric"><span>Plan</span><strong>{{ current.planLabel }}</strong></article>
+    <article class="card metric"><span>Límite mensual</span><strong>{{ formatMoney(current.monthlyAiBudgetEur) }}</strong></article>
+    <article class="card metric"><span>Aplicación del límite</span><strong>{{ current.aiBudgetEnforced ? 'Activa' : 'No' }}</strong></article>
+  </section>
+  @if (current.suspensionReason) {
+    <section class="notice"><strong>Motivo de la suspensión</strong><p>{{ current.suspensionReason }}</p></section>
+  }
+  <app-user-manager [companyId]="current.id" mode="admin" />
+}

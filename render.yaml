@@ -1,0 +1,44 @@
+# Blueprint de Render para el API y PostgreSQL.
+# El frontend va en Netlify y reenvía /api a este servicio.
+databases:
+  - name: neiver-db
+    plan: free
+    postgresMajorVersion: "16"
+
+services:
+  - type: web
+    name: neiver-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: NEIVER_COOKIE_SECURE
+        value: "true"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: neiver-db
+          property: connectionString
+      - key: NEIVER_JWT_SECRET
+        generateValue: true
+      - key: NEIVER_DB_PASSWORD
+        generateValue: true
+      - key: NEIVER_DB_MIGRATOR_PASSWORD
+        generateValue: true
+      - key: NEIVER_SUPERADMIN_EMAIL
+        sync: false
+      - key: NEIVER_SUPERADMIN_PASSWORD
+        sync: false
+      - key: NEIVER_SUPERADMIN_NAME
+        value: Administrador Neiver
+      - key: NEIVER_CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4.1-mini
+      - key: NEIVER_USD_TO_EUR
+        value: "0.92"

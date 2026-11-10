@@ -1,0 +1,24 @@
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+
+target/
+build/
+dist/
+node_modules/
+.angular/
+
+.env
+*.log
+*.pid
+
+.DS_Store
+coverage/
+playwright-report/
+test-results/
+
+# Local Netlify folder
+.netlify

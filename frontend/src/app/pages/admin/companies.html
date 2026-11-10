@@ -1,0 +1,46 @@
+<div class="page-head">
+  <div>
+    <h1>Empresas</h1>
+    <p>Cada empresa tiene sus usuarios, su actividad, su límite de IA y, más adelante, sus automatizaciones.</p>
+  </div>
+  <a mat-flat-button routerLink="/admin/empresas/nueva">Nueva empresa</a>
+</div>
+<form class="toolbar" novalidate (ngSubmit)="search()">
+  <mat-form-field appearance="outline">
+    <mat-label>Buscar por nombre o CIF</mat-label>
+    <input matInput [formControl]="query">
+  </mat-form-field>
+  <button mat-stroked-button type="submit">Buscar</button>
+</form>
+@if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+<section class="card">
+  @if (items().length === 0) {
+    <p class="empty">No hay empresas con ese criterio.</p>
+  } @else {
+    <table class="data">
+      <thead>
+        <tr><th>Empresa</th><th>CIF / NIF</th><th>Plan</th><th>Límite mensual</th><th>Estado</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (company of items(); track company.id) {
+          <tr>
+            <td><strong>{{ company.tradeName }}</strong><div class="muted">{{ company.legalName }}</div></td>
+            <td>{{ company.taxId }}</td>
+            <td>{{ company.planLabel }}</td>
+            <td>
+              {{ formatMoney(company.monthlyAiBudgetEur) }}
+              <div class="muted">{{ company.aiBudgetEnforced ? 'Se aplica al consumo' : 'Guardado, no se aplica' }}</div>
+            </td>
+            <td><span class="pill" [class.ok]="company.status === 'ACTIVE'" [class.bad]="company.status === 'SUSPENDED'">{{ company.status === 'ACTIVE' ? 'Activa' : 'Suspendida' }}</span></td>
+            <td><a [routerLink]="['/admin/empresas', company.id]">Abrir</a></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+  <div class="pager">
+    <button mat-button type="button" [disabled]="page() <= 1" (click)="load(page() - 1)">Anterior</button>
+    <span class="muted">Página {{ page() }} de {{ totalPages() || 1 }}</span>
+    <button mat-button type="button" [disabled]="page() >= totalPages()" (click)="load(page() + 1)">Siguiente</button>
+  </div>
+</section>

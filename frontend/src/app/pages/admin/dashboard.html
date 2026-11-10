@@ -1,0 +1,21 @@
+<div class="page-head">
+  <div>
+    <h1>Resumen</h1>
+    <p>Empresas, cuentas y gasto estimado de IA del mes en curso.</p>
+  </div>
+</div>
+@if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+<section class="notice">
+  <strong>Lo que esta versión mide</strong>
+  <p>Empresas, usuarios, actividad de acceso y consumo de IA con tarifas reales guardadas en base de datos. Los documentos y n8n todavía no están conectados.</p>
+</section>
+@if (data(); as dashboard) {
+  <section class="metrics">
+    <article class="card metric"><span>Empresas</span><strong>{{ dashboard.companies }}</strong></article>
+    <article class="card metric"><span>Empresas activas</span><strong>{{ dashboard.activeCompanies }}</strong></article>
+    <article class="card metric"><span>Empresas suspendidas</span><strong>{{ dashboard.suspendedCompanies }}</strong></article>
+    <article class="card metric"><span>Usuarios activos</span><strong>{{ dashboard.activeUsers }}</strong></article>
+    <article class="card metric"><span>IA {{ dashboard.month }}</span><strong>{{ formatAiCost(dashboard.monthlyAiSpendEur) }}</strong></article>
+  </section>
+  <app-activity-list [entries]="dashboard.recentActivity" />
+}
